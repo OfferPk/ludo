@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate Ludo Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --red: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            --green: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            --blue: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            --yellow: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            --purple: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            --orange: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            --gray: #ecf0f1;
+            --dark-gray: #2c3e50;
+            --light-gray: #f5f6fa;
+            --safe-star-color: #ffd700;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--gray);
+            padding: 20px;
+            text-align: center;
+        }
+
+        h3 {
+            color: var(--dark-gray);
+        }
+
+        .avatar-selection {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .avatar-option {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .avatar-option.selected {
+            border-color: #6e48aa;
+            box-shadow: 0 0 15px rgba(110, 72, 170, 0.4);
+            transform: scale(1.1);
+        }
+
+        .powerups-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 1px solid #eee;
+        }
+
+        .powerup-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px auto;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            max-width: 300px;
+        }
+
+        .powerup-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #6e48aa;
+            color: white;
+        }
+
+        .quick-move-button {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            background: #6e48aa;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .quick-move-button:hover {
+            background: #9d50bb;
+        }
+
+        .double-dice-indicator {
+            display: none;
+            background: #e74c3c;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin: 10px auto;
+        }
+
+        /* Player Profile Styles */
+        .player-profile {
+            background: var(--light-gray);
+            border: 2px solid var(--dark-gray);
+            border-radius: 15px;
+            padding: 15px;
+            width: 180px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .player-profile img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--dark-gray);
+            margin-bottom: 10px;
+        }
+
+        .player-profile h4 {
+            margin: 5px 0;
+            color: #2c3e50;
+        }
+
+        .player-profile .stat {
+            font-size: 0.9em;
+            margin: 2px 0;
+            color: #555;
+        }
+
+        .player-active {
+            border-color: #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+    </style>
+</head>
+<body>
+    <h2>🎲 Ultimate Ludo Game</h2>
+
+    <!-- Avatar Selection -->
+    <h3>Select Avatar</h3>
+    <div class="avatar-selection" id="avatarSelection">
+        <div class="avatar-option selected" style="background-image: url('https://i.pravatar.cc/150?img=1')"></div>
+        <div class="avatar-option" style="background-image: url('https://i.pravatar.cc/150?img=3')"></div>
+        <div class="avatar-option" style="background-image: url('https://i.pravatar.cc/150?img=5')"></div>
+        <div class="avatar-option" style="background-image: url('https://i.pravatar.cc/150?img=7')"></div>
+    </div>
+
+    <!-- Power-up Section -->
+    <div class="powerups-section">
+        <h3>Power-ups (3 remaining)</h3>
+        <div class="powerup-card">
+            <div class="powerup-icon">🎲</div>
+            <div>
+                <h4>Double Dice</h4>
+                <p>Roll two dice for 3 turns</p>
+                <button class="quick-move-button" onclick="activatePowerUp('doubleDice')">Activate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Double Dice Indicator -->
+    <div class="double-dice-indicator" id="doubleDiceIndicator">
+        Double Dice Active (3 turns left)
+    </div>
+
+    <!-- Player Profiles -->
+    <h3>Player Profiles</h3>
+    <div id="playerProfiles"></div>
+
+    <script>
+        // Avatar selection
+        document.querySelectorAll('.avatar-option').forEach(avatar => {
+            avatar.addEventListener('click', function () {
+                document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // Power-up system
+        let activePowerUps = {
+            doubleDice: { active: false, turnsRemaining: 0 }
+        };
+
+        function activatePowerUp(type) {
+            if (type === 'doubleDice') {
+                activePowerUps.doubleDice = { active: true, turnsRemaining: 3 };
+                document.getElementById('doubleDiceIndicator').style.display = 'block';
+                updatePowerUpDisplay();
+            }
+        }
+
+        function updatePowerUpDisplay() {
+            const indicator = document.getElementById('doubleDiceIndicator');
+            if (activePowerUps.doubleDice.active) {
+                indicator.textContent = `Double Dice Active (${activePowerUps.doubleDice.turnsRemaining} turns left)`;
+            }
+        }
+
+        // Player Data (mock)
+        const gamePlayers = [
+            {
+                id: 0,
+                name: "Player 1",
+                avatar: "https://i.pravatar.cc/150?img=1",
+                wins: 3,
+                losses: 1,
+                captures: 5
+            },
+            {
+                id: 1,
+                name: "Player 2",
+                avatar: "https://i.pravatar.cc/150?img=3",
+                wins: 1,
+                losses: 2,
+                captures: 2
+            }
+        ];
+
+        function renderPlayerProfiles(currentPlayerId = 0) {
+            const container = document.getElementById('playerProfiles');
+            container.innerHTML = '';
+            gamePlayers.forEach(player => {
+                const profile = document.createElement('div');
+                profile.className = 'player-profile';
+                if (player.id === currentPlayerId) profile.classList.add('player-active');
+
+                profile.innerHTML = `
+                    <img src="${player.avatar}" alt="Avatar">
+                    <h4>${player.name}</h4>
+                    <div class="stat">Wins: ${player.wins}</div>
+                    <div class="stat">Losses: ${player.losses}</div>
+                    <div class="stat">Captures: ${player.captures}</div>
+                `;
+                container.appendChild(profile);
+            });
+        }
+
+        function onPlayerTurnChange(newPlayerId) {
+            renderPlayerProfiles(newPlayerId);
+        }
+
+        renderPlayerProfiles(); // Initialize on load
+    </script>
+</body>
+</html>
