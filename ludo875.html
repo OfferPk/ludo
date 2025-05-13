@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Ludo Game - Enhanced</title>
+    <style>
+        :root {
+            --red: #e74c3c;
+            --green: #2ecc71;
+            --blue: #3498db;
+            --yellow: #f1c40f;
+            --purple: #9b59b6;
+            --orange: #e67e22;
+            /* --teal: #1abc9c; --pink: #e91e63; */ /* Not used by baseColors in JS */
+            --gray: #ecf0f1;
+            --dark-gray: #333;
+            --light-gray: #f5f5f5;
+            --board-bg: #fdfdfd;
+            --safe-star-color: #ffd700;
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--light-gray);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+        
+        header {
+            width: 100%;
+            background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: sticky;
+            top:0;
+            z-index: 500; /* Ensure header is on top */
+        }
+        
+        h1 { margin: 0; font-size: 2.2rem; }
+        
+        .back-button, .close-button {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: white; font-size: 1.5rem;
+            cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: background 0.3s;
+        }
+        .back-button { left: 20px; }
+        .close-button { right: 20px; }
+        .back-button:hover, .close-button:hover { background: rgba(255,255,255,0.2); }
+        
+        .player-selection { /* Screen for profile, bets, player count */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--light-gray); 
+            display: flex; flex-direction: column; justify-content: flex-start;
+            align-items: center;
+            z-index: 100; overflow-y: auto; padding-top: 80px; /* Space for sticky header */
+            box-sizing: border-box;
+        }
+        .player-selection-content {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15); max-width: 700px;
+            width: 90%; margin: 20px auto; text-align: center;
+        }
+
+        .player-selection-content h2 { color: var(--dark-gray); font-size: 1.8rem; margin-bottom: 20px; margin-top: 5px; }
+        .player-selection-content h3 { margin-top:25px; margin-bottom:10px; color: var(--dark-gray); font-size: 1.3rem;}
+
+        .player-options { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom:20px;}
+        .player-option {
+            background: var(--gray); padding: 15px; border-radius: 10px; text-align: center;
+            cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            min-width: 120px; border: 2px solid transparent; flex-basis: calc(50% - 20px); /* Two per row */
+        }
+        @media (min-width: 600px) {
+             .player-option { flex-basis: calc(25% - 20px); } /* Four per row on wider screens */
+        }
+        .player-option:hover, .player-option.selected {
+            transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); border-color: #6e48aa;
+        }
+        .player-option h3 { font-size: 1.1rem; margin: 0 0 5px 0; color: #6e48aa; } /* Smaller h3 */
+        .player-option p { color: #555; margin: 0; font-size:0.8em; }
+
+        .profile-rewards-section, .betting-section {
+            margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; border: 1px solid #eee;
+        }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom:15px; }
+        .stat-item { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 0.9em;}
+        .stat-item strong { color: #6e48aa; font-size: 1.1em;}
+        #watchAdButton { background: linear-gradient(135deg, var(--green) 0%, #58d68d 100%); margin-top:10px; width:100%; padding: 10px; font-size: 0.9em;}
+        #watchAdButton:disabled { background: #aaa; cursor: not-allowed;}
+        #adRewardMessage {font-size:0.8em; margin-top:8px; color: #666; min-height:1.2em;}
+
+        .bet-options { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .bet-option {
+            padding: 8px 12px; background: white; border: 1px solid #ddd; border-radius: 20px;
+            cursor: pointer; transition: all 0.2s; font-weight: bold; font-size:0.85em;
+        }
+        .bet-option:hover { background: #efefef; }
+        .bet-option.selected { background: #6e48aa; color: white; border-color: #6e48aa;}
+        #startGameButton { 
+            margin-top:25px; 
+            background: linear-gradient(135deg, var(--orange) 0%, #f39c12 100%); 
+            width:100%; font-size:1.2em; padding: 12px;
+            border:none; color:white; border-radius: 8px; cursor:pointer; transition: opacity 0.3s;
+        }
+        #startGameButton:hover { opacity: 0.9; }
+
+
+        .game-container {
+            position: relative; margin: 20px; background: white; border-radius: 15px;
+            padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: none; /* Initially hidden */
+            flex-direction: column; align-items: center;
+        }
+        canvas {
+            background: var(--board-bg); border: 3px solid var(--dark-gray);
+            border-radius: 10px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        .controls { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: center; }
+        .dice {
+            width: 80px; height: 80px; background: linear-gradient(135deg, #ff5e62 0%, #ff9966 100%);
+            border-radius: 15px; color: white; font-size: 48px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease; user-select: none;
+        }
+        .dice:hover { transform: scale(1.05); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); }
+        .dice.animate { animation: diceRoll 0.5s ease-in-out; background: linear-gradient(135deg, #ffcc33 0%, #ffb347 100%); }
+        @keyframes diceRoll {
+            0% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(90deg) scale(1.2); }
+            50% { transform: rotate(180deg) scale(1.1); } 75% { transform: rotate(270deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .countdown { width: 150px; height: 15px; background: #ddd; position: relative; border-radius: 10px; overflow: hidden; }
+        .countdown-bar { height: 100%; background: linear-gradient(90deg, #ff5f6d, #ffc371); width: 100%; transition: width 0.5s linear; border-radius: 10px; }
+        
+        .settings-panel { margin-top: 20px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); width: 100%; max-width: 600px; }
+        .setting-row { display: flex; align-items: center; margin: 10px 0; padding: 8px; background: #f9f9f9; border-radius: 8px; }
+        .setting-row label { margin-left: 10px; font-weight: 500; color: var(--dark-gray); font-size: 0.9em;}
+        
+        .token-balances { display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap; max-width: 600px; }
+        .token-balance {
+            font-size: 14px; font-weight: bold; padding: 6px 12px; border-radius: 15px;
+            color: white; min-width: 70px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .custom-turn-order { display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap; align-items: center; max-width: 600px; }
+        .custom-turn-order label { font-weight: bold; color: #555; }
+        .custom-turn-order input { width: 50px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; text-align: center; font-weight: bold; }
+        .custom-turn-order input:focus { outline: none; border-color: #6e48aa; }
+        
+        button { /* General button style, specific buttons can override */
+            background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%); color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;
+            transition: all 0.3s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.7; }
+        
+        .game-info { margin-top: 15px; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center;}
+        .game-info-pot { font-weight: bold; margin-bottom: 10px; color: var(--dark-gray);}
+        .current-player { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+        .dice-value { font-size: 1.5rem; font-weight: bold; color: var(--red); }
+        .game-message { margin-top: 10px; padding: 10px; border-radius: 5px; background: #f8f9fa; font-weight: 500; min-height: 20px; }
+        
+        .win-message, .exit-confirmation, .forced-close-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 600; color: white; text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        .win-message h2 { font-size: 3rem; margin-bottom: 20px; color: gold; }
+        .win-message button { margin-top: 30px; font-size: 1.2rem; padding: 15px 30px; }
+
+        .forced-close-overlay h2 { font-size: 2.5rem; margin-bottom: 15px; }
+        .forced-close-overlay p { font-size: 1.2rem; margin-bottom: 20px; }
+        .forced-close-overlay .timer { font-size: 1.5rem; color: var(--yellow); }
+
+        .exit-dialog { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%; color: var(--dark-gray); }
+        .exit-dialog h3 { margin-top: 0; }
+        .exit-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        .exit-buttons button { min-width: 100px; }
+        .exit-buttons button#confirmExitButton { background: linear-gradient(135deg, #ff5e62 0%, #ff9966 100%); }
+        .exit-buttons button:last-child { background: linear-gradient(135deg, #4CAF50 0%, #2ecc71 100%); }
+
+    </style>
+</head>
+<body>
+    <header>
+        <button class="back-button" id="backButton" style="display: none;">← Home</button>
+        <h1>Smart Ludo Game</h1>
+        <button class="close-button" id="closeButton" style="display: none;">✕ Quit</button>
+    </header>
+
+    <div class="player-selection" id="playerSelectionScreen">
+        <div class="player-selection-content">
+            <h2>Smart Ludo Dashboard</h2>
+
+            <div class="profile-rewards-section">
+                <h3>Your Profile & Rewards</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">Coins: <strong id="playerCoins">0</strong></div>
+                    <div class="stat-item">Wins: <strong id="playerWins">0</strong></div>
+                    <div class="stat-item">Losses: <strong id="playerLosses">0</strong></div>
+                </div>
+                <button id="watchAdButton" onclick="watchAdForCoins()">Watch Ad for Coins (+500)</button>
+                <p id="adRewardMessage"></p>
+            </div>
+
+            <div class="betting-section">
+                <h3>Select Bet Amount (Per Player)</h3>
+                <div class="bet-options" id="betOptionsContainer"></div>
+            </div>
+            
+            <h3>Select Number of Players</h3>
+            <div class="player-options" id="playerOptionsContainer">
+                <!-- Player options will be populated by JS or can be hardcoded as you have -->
+                <div class="player-option" data-value="2"><h3>2 Players</h3><p>1v1 Classic</p></div>
+                <div class="player-option" data-value="3"><h3>3 Players</h3><p>Triple Threat*</p></div>
+                <div class="player-option" data-value="4"><h3>4 Players</h3><p>Full Board</p></div>
+                <div class="player-option" data-value="6"><h3>6 Players</h3><p>All Stars Action**</p></div>
+            </div>
+             <p style="font-size: 0.75em; color: #777; margin-top:5px; text-align:left; padding-left:10px;">
+                *3 Player uses a 4-arm board (one arm inactive).<br>
+                **6 Player uses a modified 4-arm board; Purple & Orange stage near corners & use Red/Green paths.
+            </p>
+            <button id="startGameButton" onclick="validateAndStartGame()">Start Game</button>
+        </div>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+         <canvas id="ludoCanvas" width="600" height="600"></canvas> <!-- Renamed canvas id -->
+        <div class="game-info">
+            <div class="game-info-pot">Game Pot: <span id="gamePotDisplay">0</span> coins</div>
+            <div class="current-player" id="currentPlayer">Current Player: Red</div>
+            <div class="dice-value" id="diceValue">Dice: -</div>
+            <div class="game-message" id="gameMessage">Welcome! Click dice or token.</div>
+        </div>
+        <div class="controls">
+            <div class="dice" id="dice">🎲</div>
+            <div class="countdown" id="countdown"><div class="countdown-bar" id="countdownBar"></div></div>
+        </div>
+        <div class="token-balances" id="tokenBalances"></div>
+        <div class="custom-turn-order" id="customTurnOrderContainer">
+            <label>Turn Order:</label>
+            <!-- inputs generated by JS -->
+            <button onclick="updateTurnOrder()">Update Order</button>
+        </div>
+        <div class="settings-panel">
+            <div class="setting-row"><input type="checkbox" id="autoMode" checked><label for="autoMode">AI for Other Players</label></div>
+            <div class="setting-row"><input type="checkbox" id="autoRoll" checked><label for="autoRoll">Auto-Roll for AI</label></div>
+            <div class="setting-row"><input type="checkbox" id="smartCapture" checked><label for="smartCapture">Smart Capture (AI)</label></div>
+            <div class="setting-row"><input type="checkbox" id="safeMove" checked><label for="safeMove">Safe Moves (AI)</label></div>
+            <div class="setting-row"><input type="checkbox" id="aiVsAi"><label for="aiVsAi">AI vs AI Simulation</label></div>
+            <div class="setting-row"><input type="checkbox" id="soundEffects" checked><label for="soundEffects">Sound Effects</label></div>
+            <button onclick="resetGameConfirm()" style="margin-top: 15px; width: 100%;">Reset Current Game</button>
+        </div>
+    </div>
+
+    <div class="win-message" id="winMessage"> <!-- Modal Style -->
+        <div class="exit-dialog"> <!-- Re-using exit-dialog for consistent modal look -->
+            <h2 id="winnerText" style="color: gold;">Player Wins!</h2>
+            <p id="winDetails" style="color: white; font-size:1.2em;">Congratulations on your victory!</p>
+            <p id="winPotInfo" style="color: white; font-size:1.1em;">You won <span id="winPotAmount">0</span> coins!</p>
+            <button onclick="returnToHome()" style="margin-top:20px;">Back to Home</button>
+        </div>
+    </div>
+
+    <div class="exit-confirmation" id="exitConfirmation"> <!-- Modal Style -->
+        <div class="exit-dialog">
+            <h3 id="exitDialogTitle">Exit Game</h3>
+            <p id="exitDialogMessage">Are you sure?</p>
+            <div class="exit-buttons">
+                <button id="confirmExitButton" onclick="confirmQuitGame()">Yes</button>
+                <button onclick="cancelExit()">No</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="forced-close-overlay" id="forcedCloseOverlay"> <!-- Modal Style -->
+         <div class="exit-dialog"> <!-- Re-using exit-dialog -->
+            <h2 id="forcedCloseTitle" style="color: var(--red);">Game Over</h2>
+            <p id="forcedCloseMessage" style="color: white; font-size:1.1em;">Player X left the game. Player Y wins!</p>
+            <p style="color: white;">Returning to home in <span id="forcedCloseTimer" class="timer" style="color: var(--yellow);">5</span>s</p>
+        </div>
+    </div>
+
+    <audio id="diceSound" src="https://assets.mixkit.co/sfx/preview/mixkit-plastic-dice-roll-1494.mp3" preload="auto"></audio>
+    <audio id="moveSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" preload="auto"></audio>
+    <audio id="captureSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3" preload="auto"></audio>
+    <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+    <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-show-wrong-answer-buzz-950.mp3" preload="auto"></audio>
+    <audio id="coinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-success-alert-2039.mp3" preload="auto"></audio>
+    <audio id="backgroundMusic" loop src="https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-668.mp3" preload="auto"></audio>
+
+    <script>
+        // Constants for localStorage
+        const LS_COINS_KEY = 'ludoSmartCoinsV3';
+        const LS_WINS_KEY = 'ludoSmartWinsV3';
+        const LS_LOSSES_KEY = 'ludoSmartLossesV3';
+        const LS_JOINING_BONUS_KEY = 'ludoSmartJoiningBonusReceivedV3';
+        const LS_LAST_AD_DATE_KEY = 'ludoSmartLastAdDateV3';
+        const LS_TODAY_AD_COINS_KEY = 'ludoSmartTodayAdCoinsV3';
+        const DAILY_AD_COIN_LIMIT = 5000;
+        const AD_REWARD_AMOUNT = 500;
+        const JOINING_BONUS_AMOUNT = 5000;
+
+        const BET_AMOUNTS = [500, 1000, 10000, 50000, 100000, 500000, 1000000, 5000000, 10000000];
+        let selectedBetAmount = BET_AMOUNTS[0]; // Default bet
+        let selectedPlayerCount = 0;
+
+        let playerCoins = 0;
+        let playerWins = 0;
+        let playerLosses = 0;
+
+        const canvasEl = document.getElementById('ludoCanvas');
+        const ctx = canvasEl.getContext('2d');
+        
+        let GRID_SIZE = 15; 
+        let CELL_SIZE = canvasEl.width / GRID_SIZE;
+        let TOKEN_RADIUS = CELL_SIZE * 0.35; // Will be set in configureBoardLayout
+        const TOKENS_PER_PLAYER = 4;
+        let MAIN_TRACK_LENGTH = 52; 
+        const HOME_STRETCH_LENGTH = 6;
+
+        let players = [];
+        let playerCount = 0; 
+        let currentPlayerTurnIndex = 0; 
+        let currentDiceValue = 0;
+        let gameActive = false;
+        let turnOrder = []; 
+        let humanPlayerCanMove = false;
+        let possibleMovesForHuman = [];
+        let countdownInterval;
+        let extraTurnReason = null;
+        let gamePot = 0;
+
+        const baseColors = [ 
+            { name: 'Red',    code: 'var(--red)'},    { name: 'Green',  code: 'var(--green)'},
+            { name: 'Yellow', code: 'var(--yellow)'}, { name: 'Blue',   code: 'var(--blue)'},
+            { name: 'Purple', code: 'var(--purple)'},{ name: 'Orange', code: 'var(--orange)'}
+        ];
+        
+        let ACTIVE_PLAYER_GEOMETRY_CONFIG = [];
+        let ACTIVE_MAIN_TRACK_COORDS = [];
+        let ACTIVE_SAFE_SQUARE_INDICES = [];
+
+        // Standard 4-Player board definition (will be filtered/extended)
+        const DEFAULT_MAIN_TRACK_COORDS_4P = [ 
+            [1,6],[2,6],[3,6],[4,6],[5,6], [6,5],[6,4],[6,3],[6,2],[6,1],[6,0], [7,0],[8,0],
+            [8,1],[8,2],[8,3],[8,4],[8,5], [9,6],[10,6],[11,6],[12,6],[13,6],[14,6], [14,7],[14,8],
+            [13,8],[12,8],[11,8],[10,8],[9,8], [8,9],[8,10],[8,11],[8,12],[8,13],[8,14], [7,14],[6,14],
+            [6,13],[6,12],[6,11],[6,10],[6,9], [5,8],[4,8],[3,8],[2,8],[1,8],[0,8], [0,7],[0,6]
+        ];
+        const DEFAULT_SAFE_SQUARE_INDICES_4P = [0, 8, 13, 21, 26, 34, 39, 47]; // Corresponds to startPosGlobal for R,G,Y,B
+        
+        // Base geometry. Yellow is traditionally P2 or P3, Blue P3 or P2.
+        // Mapping to colors array: Red (0), Green (1), Yellow (2), Blue (3)
+        // Geometric config array indices: Red (0), Green (1), YellowVisual (2), BlueVisual (3)
+        const DEFAULT_PLAYER_GEOMETRY_BASE = [ 
+            { nameRef:'Red', homeArea: { x: 0, y: 0, w: 6, h: 6 }, startSquareGrid: [1, 6], startPosGlobal: 0, homePathEntryGlobalTrackPos: 50, homePathSquaresGrid: [[6,1],[6,2],[6,3],[6,4],[6,5],[6,6]] },
+            { nameRef:'Green', homeArea: { x: 9, y: 0, w: 6, h: 6 }, startSquareGrid: [8, 1], startPosGlobal: 13, homePathEntryGlobalTrackPos: 11, homePathSquaresGrid: [[13,6],[12,6],[11,6],[10,6],[9,6],[8,6]] },
+            { nameRef:'YellowVisual', homeArea: { x: 9, y: 9, w: 6, h: 6 }, startSquareGrid: [6, 13], startPosGlobal: 26, homePathEntryGlobalTrackPos: 24, homePathSquaresGrid: [[8,13],[8,12],[8,11],[8,10],[8,9],[8,8]] },
+            { nameRef:'BlueVisual', homeArea: { x: 0, y: 9, w: 6, h: 6 }, startSquareGrid: [13, 8], startPosGlobal: 39, homePathEntryGlobalTrackPos: 37, homePathSquaresGrid: [[1,8],[2,8],[3,8],[4,8],[5,8],[6,8]] }
+        ];
+        // Staging areas for 6 Players (Purple uses Red path, Orange uses Green path concept)
+        const PURPLE_6P_STAGING = { nameRef:'Purple', homeArea: { x: 0.5, y: 7, w: 3, h: 2 }, startSquareGrid: DEFAULT_PLAYER_GEOMETRY_BASE[0].startSquareGrid, startPosGlobal: DEFAULT_PLAYER_GEOMETRY_BASE[0].startPosGlobal, homePathEntryGlobalTrackPos: DEFAULT_PLAYER_GEOMETRY_BASE[0].homePathEntryGlobalTrackPos, homePathSquaresGrid: DEFAULT_PLAYER_GEOMETRY_BASE[0].homePathSquaresGrid };
+        const ORANGE_6P_STAGING = { nameRef:'Orange', homeArea: { x: 11.5, y: 7, w: 3, h: 2 }, startSquareGrid: DEFAULT_PLAYER_GEOMETRY_BASE[1].startSquareGrid, startPosGlobal: DEFAULT_PLAYER_GEOMETRY_BASE[1].startPosGlobal, homePathEntryGlobalTrackPos: DEFAULT_PLAYER_GEOMETRY_BASE[1].homePathEntryGlobalTrackPos, homePathSquaresGrid: DEFAULT_PLAYER_GEOMETRY_BASE[1].homePathSquaresGrid };
+
+
+        function initPlayerProfile() { /* ... same as your enhanced version ... */ 
+            const storedCoins = localStorage.getItem(LS_COINS_KEY);
+            const joiningBonusReceived = localStorage.getItem(LS_JOINING_BONUS_KEY) === 'true';
+            if (storedCoins === null) {
+                playerCoins = JOINING_BONUS_AMOUNT;
+                localStorage.setItem(LS_COINS_KEY, playerCoins.toString());
+                localStorage.setItem(LS_JOINING_BONUS_KEY, 'true');
+                 setTimeout(() => alert(`Welcome! You've received ${JOINING_BONUS_AMOUNT} joining bonus coins!`), 100);
+            } else {
+                playerCoins = parseInt(storedCoins);
+                if (!joiningBonusReceived && playerCoins < JOINING_BONUS_AMOUNT) { 
+                    playerCoins += JOINING_BONUS_AMOUNT;
+                    localStorage.setItem(LS_COINS_KEY, playerCoins.toString());
+                    localStorage.setItem(LS_JOINING_BONUS_KEY, 'true');
+                    setTimeout(() => alert(`Welcome back! We've topped up your account with ${JOINING_BONUS_AMOUNT} bonus coins!`), 100);
+                }
+            }
+            playerWins = parseInt(localStorage.getItem(LS_WINS_KEY) || '0');
+            playerLosses = parseInt(localStorage.getItem(LS_LOSSES_KEY) || '0');
+            updateProfileDisplay(); setupBetOptions(); setupPlayerCountOptions();
+        }
+        function updateProfileDisplay() { /* ... same as your enhanced version ... */
+             document.getElementById('playerCoins').textContent = playerCoins.toLocaleString();
+             document.getElementById('playerWins').textContent = playerWins;
+             document.getElementById('playerLosses').textContent = playerLosses;
+             checkAdRewardStatus();
+        }
+        function addCoins(amount) { /* ... same as your enhanced version ... */
+             playerCoins += amount; localStorage.setItem(LS_COINS_KEY, playerCoins.toString());
+             updateProfileDisplay(); playSound('coinSound');
+        }
+        function deductCoins(amount) { /* ... same as your enhanced version ... */
+             playerCoins -= amount; localStorage.setItem(LS_COINS_KEY, playerCoins.toString());
+             updateProfileDisplay();
+        }
+        function incrementWins() { playerWins++; localStorage.setItem(LS_WINS_KEY, playerWins.toString()); /* updateProfileDisplay called by gameEndLogic */ }
+        function incrementLosses() { playerLosses++; localStorage.setItem(LS_LOSSES_KEY, playerLosses.toString()); /* updateProfileDisplay called by gameEndLogic */ }
+
+        function checkAdRewardStatus() { /* ... same as your enhanced version ... */
+            const today = new Date().toISOString().split('T')[0];
+            const lastAdDate = localStorage.getItem(LS_LAST_AD_DATE_KEY);
+            let todayAdCoins = 0;
+            if (lastAdDate === today) todayAdCoins = parseInt(localStorage.getItem(LS_TODAY_AD_COINS_KEY) || '0');
+            else { localStorage.setItem(LS_LAST_AD_DATE_KEY, today); localStorage.setItem(LS_TODAY_AD_COINS_KEY, '0'); }
+            
+            const adButton = document.getElementById('watchAdButton'); const adMessage = document.getElementById('adRewardMessage');
+            if (todayAdCoins >= DAILY_AD_COIN_LIMIT) {
+                adButton.disabled = true; adMessage.textContent = `Daily ad reward limit reached. Try tomorrow.`;
+            } else {
+                adButton.disabled = false; adMessage.textContent = `Earn ${AD_REWARD_AMOUNT} coins. ${DAILY_AD_COIN_LIMIT - todayAdCoins} coins left today.`;
+            }
+        }
+        function watchAdForCoins() { /* ... same as your enhanced version ... */
+            const adButton = document.getElementById('watchAdButton'); adButton.disabled = true; adButton.textContent = "Loading Ad...";
+            setTimeout(() => {
+                addCoins(AD_REWARD_AMOUNT); let todayAdCoins = parseInt(localStorage.getItem(LS_TODAY_AD_COINS_KEY) || '0');
+                todayAdCoins += AD_REWARD_AMOUNT; localStorage.setItem(LS_TODAY_AD_COINS_KEY, todayAdCoins.toString());
+                alert(`You earned ${AD_REWARD_AMOUNT} coins!`); adButton.textContent = `Watch Ad for Coins (+${AD_REWARD_AMOUNT})`;
+                checkAdRewardStatus();
+            }, 1500);
+        }
+
+        function setupBetOptions() { /* ... same as your enhanced version ... */
+            const container = document.getElementById('betOptionsContainer'); container.innerHTML = '';
+            BET_AMOUNTS.forEach(amount => {
+                const button = document.createElement('div'); button.className = 'bet-option';
+                button.textContent = amount >= 1000000 ? `${amount/1000000}M` : (amount >= 1000 ? `${amount/1000}K` : amount.toString());
+                button.dataset.value = amount; if (amount === selectedBetAmount) button.classList.add('selected');
+                button.onclick = () => {
+                    selectedBetAmount = amount; document.querySelectorAll('.bet-option').forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                };
+                container.appendChild(button);
+            });
+        }
+        function setupPlayerCountOptions() { /* ... same as your enhanced version ... */
+            const container = document.getElementById('playerOptionsContainer');
+            container.querySelectorAll('.player-option').forEach(option => {
+                option.onclick = () => {
+                    selectedPlayerCount = parseInt(option.dataset.value);
+                    container.querySelectorAll('.player-option').forEach(btn => btn.classList.remove('selected'));
+                    option.classList.add('selected');
+                }
+            });
+        }
+
+        function validateAndStartGame() {
+            if (selectedPlayerCount === 0) { alert("Please select the number of players."); return; }
+            if (playerCoins < selectedBetAmount) { alert(`Not enough coins. Bet: ${selectedBetAmount.toLocaleString()}, Your balance: ${playerCoins.toLocaleString()}`); return; }
+            
+            deductCoins(selectedBetAmount); // Human player pays their bet
+            gamePot = selectedBetAmount * selectedPlayerCount; // Total pot for the game
+            
+            playerCount = selectedPlayerCount; // Set global Ludo playerCount
+            startGameSetupInternal(playerCount); 
+        }
+        
+        function returnToHome() {
+            document.getElementById('winMessage').style.display = 'none';
+            document.getElementById('forcedCloseOverlay').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('playerSelectionScreen').style.display = 'flex';
+            document.getElementById('backButton').style.display = 'none';
+            document.getElementById('closeButton').style.display = 'none';
+            gameActive = false; // Ensure game is marked inactive
+            
+            const bgMusic = document.getElementById('backgroundMusic');
+            if (bgMusic && typeof bgMusic.pause === 'function') {
+                 bgMusic.pause(); bgMusic.currentTime = 0;
+            }
+            updateProfileDisplay(); initPlayerProfile(); // Refresh profile fully
+        }
+
+        function gameEndLogic(winnerPlayerIndex, isForfeit = false, forfeitingPlayerIndex = -1) {
+            if (!gameActive) return; // Prevent multiple calls
+            gameActive = false;
+            clearInterval(countdownInterval);
+            
+            const winner = players[winnerPlayerIndex];
+            // Human player is assumed to be the one interacting, their stats are tracked directly
+            // All players' bets (including human) are in the pot. Winner gets pot.
+            // Human's original bet was already deducted. So if human wins, they get pot. If they lose, nothing happens to their coins here.
+
+            if (winner) { // Check if a winner was determined (could be null if all quit, though current logic tries to find one)
+                const humanPlayerIndexInGame = players.findIndex(p => !p.isAI && baseColors[p.colorIndexGlobal] === p.name); // Find human among game players
+                 
+                if (winnerPlayerIndex === humanPlayerIndexInGame && !isForfeit) { // Human won fairly
+                    incrementWins();
+                    addCoins(gamePot); 
+                    document.getElementById('winPotAmount').textContent = gamePot.toLocaleString();
+                    document.getElementById('winPotInfo').style.display = 'block';
+                } else if (isForfeit && humanPlayerIndexInGame === forfeitingPlayerIndex) { // Human forfeited
+                    incrementLosses();
+                    // Bet already lost when starting or during forfeit logic.
+                    // Opponent (winner) still gets their share of the pot.
+                    // The current code adds full pot to winner. For this human forfeit, the winner gets others' bets.
+                    // To make it simple: winner (non-forfeiter) gets the original `gamePot`.
+                } else if (!isForfeit && humanPlayerIndexInGame !== -1 && humanPlayerIndexInGame !== winnerPlayerIndex){ // Human was playing and lost
+                     incrementLosses();
+                }
+            }
+            updateProfileDisplay(); // Update after win/loss recorded
+
+
+            const overlayId = isForfeit ? 'forcedCloseOverlay' : 'winMessage';
+            const titleEl = isForfeit ? document.getElementById('forcedCloseTitle') : document.getElementById('winnerText');
+            const detailsEl = isForfeit ? document.getElementById('forcedCloseMessage') : document.getElementById('winDetails');
+
+            if (isForfeit) {
+                const forfeiterName = forfeitingPlayerIndex !== -1 ? players[forfeitingPlayerIndex].name : "A player";
+                titleEl.textContent = `${forfeiterName} Left!`;
+                if(winner) {
+                    detailsEl.textContent = `${winner.name} wins by default. Prize: ${gamePot.toLocaleString()} coins.`;
+                } else {
+                    detailsEl.textContent = "Game abandoned. No winner declared.";
+                }
+                
+                let timeLeft = 5; document.getElementById('forcedCloseTimer').textContent = timeLeft;
+                const timerInterval = setInterval(() => {
+                    timeLeft--; document.getElementById('forcedCloseTimer').textContent = timeLeft;
+                    if (timeLeft <= 0) { clearInterval(timerInterval); returnToHome(); }
+                }, 1000);
+            } else {
+                if(winner){
+                    titleEl.textContent = `${winner.name} Wins!`;
+                    titleEl.style.color = winner.color; // Style only for normal win title
+                    detailsEl.textContent = `Congratulations!`;
+                    document.getElementById('winPotAmount').textContent = gamePot.toLocaleString();
+                    document.getElementById('winPotInfo').style.display = 'block';
+                } else {
+                    titleEl.textContent = "Game Over";
+                    detailsEl.textContent = "The game has ended.";
+                    document.getElementById('winPotInfo').style.display = 'none';
+                }
+            }
+            document.getElementById(overlayId).style.display = 'flex';
+            playSound('winSound');
+            const bgMusic = document.getElementById('backgroundMusic');
+            if (bgMusic && typeof bgMusic.pause === 'function') bgMusic.pause();
+        }
+
+        function showExitConfirmation(actionType) { /* ... same ... */ 
+            const dialog = document.getElementById('exitConfirmation');
+            const title = document.getElementById('exitDialogTitle');
+            const msg = document.getElementById('exitDialogMessage');
+            const btn = document.getElementById('confirmExitButton');
+
+            if (actionType === 'reset') {
+                title.textContent = 'Reset Game';
+                msg.textContent = 'This will forfeit the current game and your bet. Start a new game with the same settings?';
+                btn.textContent = 'Yes, Reset'; btn.onclick = confirmReset;
+            } else { 
+                title.textContent = 'Quit Game';
+                msg.textContent = 'Are you sure? You will forfeit the game and your bet.';
+                btn.textContent = 'Yes, Quit'; btn.onclick = confirmQuitGame; 
+            }
+            dialog.style.display = 'flex';
+        }
+        function cancelExit() { document.getElementById('exitConfirmation').style.display = 'none';}
+        function confirmQuitGame() { /* ... (Potentially a more complex winner selection if human quits mid-game) ... */
+            document.getElementById('exitConfirmation').style.display = 'none';
+            if (!gameActive) { returnToHome(); return; }
+
+            const humanPlayerObject = players.find(p => !p.isAI); // Simpler: Assume human is player 0 if not AIvsAI
+            const humanPlayerIndex = humanPlayerObject ? players.indexOf(humanPlayerObject) : ( (document.getElementById('aiVsAi').checked) ? -1 : 0); // Index of the human player
+
+            if (humanPlayerIndex === -1 && !document.getElementById('aiVsAi').checked) {
+                 // This shouldn't happen if a human is playing. If AI vs AI, it's like no one to "forfeit" in user terms.
+                 console.warn("Trying to quit but no clear human player found to forfeit.");
+                 returnToHome();
+                 return;
+            }
+            
+            let winner = null;
+            if (playerCount > 1) { // Find another player to be the winner
+                 const otherPlayers = players.filter((p, idx) => idx !== humanPlayerIndex);
+                 if(otherPlayers.length > 0) winner = otherPlayers[0]; // First other player wins
+            }
+
+            if (winner) gameEndLogic(players.indexOf(winner), true, humanPlayerIndex);
+            else gameEndLogic(-1, true, humanPlayerIndex); // No clear winner, game just ends
+        }
+        function confirmReset() { /* ... same as your enhanced version (handles bet loss and re-deduction) ... */
+             document.getElementById('exitConfirmation').style.display = 'none';
+             if (!gameActive) { initPlayerProfile(); return; } // No active game to reset
+
+             const humanPlayerObject = players.find(p => !p.isAI && baseColors[p.colorIndexGlobal] === p.name); // Refined find human
+             if (humanPlayerObject) { incrementLosses(); /* Bet for current game is lost */ }
+
+             if (playerCoins < selectedBetAmount) {
+                 alert(`Cannot start new game. Not enough coins for bet of ${selectedBetAmount.toLocaleString()}. Returning home.`);
+                 returnToHome(); return;
+             }
+             deductCoins(selectedBetAmount); // Deduct for the *new* game instance.
+             gamePot = selectedBetAmount * playerCount; // Reset pot for the new game
+             
+             const currentPlayersCount = playerCount; 
+             const bgMusic = document.getElementById('backgroundMusic');
+             if (bgMusic && typeof bgMusic.pause === 'function') { bgMusic.pause(); bgMusic.currentTime = 0; }
+             
+             players = []; turnOrder = []; currentPlayerTurnIndex = 0; currentDiceValue = 0;
+             humanPlayerCanMove = false; possibleMovesForHuman = []; extraTurnReason = null; gameActive = false;
+             clearInterval(countdownInterval);
+
+             startGameSetupInternal(currentPlayersCount); 
+             document.getElementById('winMessage').style.display = 'none';
+             document.getElementById('forcedCloseOverlay').style.display = 'none';
+             document.getElementById('gamePotDisplay').textContent = gamePot.toLocaleString();
+        }
+        function resetGameConfirm() { showExitConfirmation('reset'); }
+
+
+        function configureBoardLayout() {
+            GRID_SIZE = 15; // Base for 4-player layout
+            MAIN_TRACK_LENGTH = 52; // Standard Ludo track
+            TOKEN_RADIUS = CELL_SIZE * 0.30; // Default
+
+            ACTIVE_MAIN_TRACK_COORDS = [...DEFAULT_MAIN_TRACK_COORDS_4P];
+            ACTIVE_SAFE_SQUARE_INDICES = [...DEFAULT_SAFE_SQUARE_INDICES_4P];
+            
+            let tempGeomConfig = JSON.parse(JSON.stringify(DEFAULT_PLAYER_GEOMETRY_BASE)); // Deep copy
+
+            if (playerCount === 6) {
+                TOKEN_RADIUS = CELL_SIZE * 0.28; // Slightly smaller tokens for 6P
+                // Purple (player 4) and Orange (player 5)
+                // Purple will use Red's geometric path properties for movement/home entry but different visuals
+                // Orange will use Green's geometric path properties
+                let purpleGeom = JSON.parse(JSON.stringify(PURPLE_6P_STAGING)); // Uses Red's path constants from PURPLE_6P_STAGING
+                let orangeGeom = JSON.parse(JSON.stringify(ORANGE_6P_STAGING)); // Uses Green's path constants
+
+                ACTIVE_PLAYER_GEOMETRY_CONFIG = [
+                    tempGeomConfig[0], // Red
+                    tempGeomConfig[1], // Green
+                    tempGeomConfig[2], // Yellow (Visual)
+                    tempGeomConfig[3], // Blue (Visual)
+                    purpleGeom,       
+                    orangeGeom        
+                ];
+            } else if (playerCount === 3) { // Red, Green, Yellow
+                 ACTIVE_PLAYER_GEOMETRY_CONFIG = [tempGeomConfig[0], tempGeomConfig[1], tempGeomConfig[2]];
+            } else if (playerCount === 2) { // Red, Yellow (Visual opponent)
+                ACTIVE_PLAYER_GEOMETRY_CONFIG = [tempGeomConfig[0], tempGeomConfig[2]];
+            } else { // 4 players: Red, Green, Yellow(Visual), Blue(Visual)
+                ACTIVE_PLAYER_GEOMETRY_CONFIG = tempGeomConfig.slice(0, 4);
+            }
+            CELL_SIZE = canvasEl.width / GRID_SIZE; // Recalculate if GRID_SIZE changes for star board
+            // TOKEN_RADIUS updated based on playerCount earlier
+        }
+
+        function startGameSetupInternal(countFromSelection) { /* ... same (uses configureBoardLayout) ... */
+            playerCount = countFromSelection;
+            configureBoardLayout(); 
+            document.getElementById('playerSelectionScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'flex';
+            document.getElementById('gamePotDisplay').textContent = gamePot.toLocaleString();
+            
+            setupTurnOrderInputs(); 
+            initLudoGameCore(); 
+            const bgMusic = document.getElementById('backgroundMusic');
+            if (document.getElementById('soundEffects').checked && bgMusic && typeof bgMusic.play === 'function') {
+                bgMusic.volume = 0.15; bgMusic.play().catch(e => console.warn("Autoplay music error:", e));
+            }
+        }
+        function initLudoGameCore() { /* ... (Uses baseColors correctly based on i) ... */
+            players = [];
+            for (let i = 0; i < playerCount; i++) {
+                const playerColorInfo = baseColors[i]; 
+                const geometry = ACTIVE_PLAYER_GEOMETRY_CONFIG[i]; 
+                if (!geometry) { console.error(`No geometry for player ${i} (color ${playerColorInfo.name}) with ${playerCount} players.`); continue; }
+
+                players.push({
+                    name: playerColorInfo.name, color: playerColorInfo.code, isAI: false, 
+                    geometry: geometry, colorIndexGlobal: i, // Store original color index for reference
+                    tokens: Array(TOKENS_PER_PLAYER).fill(null).map((_, k) => ({
+                        id: k, state: 'home', position: -1, globalTrackPos: -1, displayPos: { x: 0, y: 0 }
+                    })),
+                    finishedTokens: 0
+                });
+            }
+            updateTurnOrder(); currentDiceValue = 0; gameActive = true; humanPlayerCanMove = false;
+            possibleMovesForHuman = []; extraTurnReason = null;
+
+            const aiVsAi = document.getElementById('aiVsAi').checked;
+            const autoMode = document.getElementById('autoMode').checked; // "AI for Other Players"
+            players.forEach((p, idx) => { // Player 0 is Red by default
+                if (aiVsAi) p.isAI = true;
+                else p.isAI = (p.name !== baseColors[0].name) && autoMode; // Red is human if not AiVsAi and autoMode doesn't make it AI
+            });
+             if (playerCount === 1 && players[0] && !aiVsAi) players[0].isAI = false; // Single human player cannot be AI unless AiVsAI
+
+            updateCurrentPlayerDisplay(); updateTokenBalances(); drawBoard(); 
+            const firstPlayer = players[turnOrder[currentPlayerTurnIndex]];
+            if (firstPlayer) {
+                showGameMessage(`${firstPlayer.name}'s turn. Roll dice.`);
+                if (firstPlayer.isAI && document.getElementById('autoRoll').checked) startCountdown(handleDiceRollAction);
+            } else showGameMessage("Error: No first player. Please reset.");
+            
+            document.getElementById('dice').removeEventListener('click', handleDiceRollAction); 
+            document.getElementById('dice').addEventListener('click', handleDiceRollAction);
+            canvasEl.removeEventListener('click', handleCanvasClick);
+            canvasEl.addEventListener('click', handleCanvasClick);
+            
+            document.getElementById('backButton').style.display = 'block'; document.getElementById('closeButton').style.display = 'block';
+            document.getElementById('backButton').onclick = () => showExitConfirmation('exit_to_menu_forfeit_if_active');
+            document.getElementById('closeButton').onclick = () => showExitConfirmation('quit_current_game_forfeit');
+        }
+        // drawBoard from your previous 'cone' update (using ACTIVE_PLAYER_GEOMETRY_CONFIG)
+        function getBorderColor(backgroundColorString) {
+             if (backgroundColorString.includes('var(--yellow)')) return '#a18800'; 
+             if (backgroundColorString.includes('var(--green)')) return '#1a7431';  
+             if (backgroundColorString.includes('var(--blue)')) return '#1b608c';   
+             if (backgroundColorString.includes('var(--red)')) return '#a02c2c';    
+             if (backgroundColorString.includes('var(--purple)')) return '#6a3682'; 
+             if (backgroundColorString.includes('var(--orange)')) return '#a85915'; 
+             return '#333'; 
+        }
+        function drawBoard() { /* ... Uses cone drawing functions and refers to ACTIVE_PLAYER_GEOMETRY_CONFIG ... */
+            ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--board-bg').trim();
+            ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+
+            ACTIVE_PLAYER_GEOMETRY_CONFIG.forEach((geom, geomIndex) => {
+                if (geomIndex >= playerCount || !players[geomIndex]) return; 
+                let displayColor = players[geomIndex].color;
+                let borderColor = getBorderColor(displayColor);
+
+                ctx.lineWidth = 1; 
+                for (let r = 0; r < geom.homeArea.h; r++) {
+                    for (let c = 0; c < geom.homeArea.w; c++) {
+                        ctx.fillStyle = displayColor; 
+                        ctx.fillRect((geom.homeArea.x + c) * CELL_SIZE, (geom.homeArea.y + r) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        ctx.strokeStyle = borderColor;
+                        ctx.strokeRect((geom.homeArea.x + c) * CELL_SIZE, (geom.homeArea.y + r) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
+                }
+                ctx.strokeStyle = borderColor; ctx.lineWidth = 2.5; 
+                ctx.strokeRect(geom.homeArea.x * CELL_SIZE, geom.homeArea.y * CELL_SIZE, geom.homeArea.w * CELL_SIZE, geom.homeArea.h * CELL_SIZE);
+                
+                geom.homePathSquaresGrid.forEach((sq) => {
+                    ctx.fillStyle = displayColor; 
+                    ctx.fillRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    ctx.strokeStyle = borderColor; ctx.lineWidth = 1;
+                    ctx.strokeRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                });
+            });
+
+            ACTIVE_MAIN_TRACK_COORDS.forEach((sq, index) => {
+                ACTIVE_PLAYER_GEOMETRY_CONFIG.forEach((geom, playerGeomIndex) => {
+                    if (playerGeomIndex >= playerCount || !players[playerGeomIndex]) return;
+                    const playerAssociatedWithGeom = players[playerGeomIndex];
+                    const armLength = 5; 
+                    if (index >= geom.startPosGlobal && index < geom.startPosGlobal + armLength) {
+                        if (!ACTIVE_SAFE_SQUARE_INDICES.includes(index) && index !== geom.startPosGlobal) {
+                            ctx.fillStyle = playerAssociatedWithGeom.color.replace(')', ', 0.18)').replace('var(', 'rgba(');
+                            ctx.fillRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        }
+                    }
+                });
+                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--dark-gray').trim();
+                ctx.lineWidth = 1; ctx.strokeRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                
+                ACTIVE_PLAYER_GEOMETRY_CONFIG.forEach((geom, geomIndex) => {
+                    if (geomIndex >= playerCount || !players[geomIndex]) return;
+                    if (geom.startPosGlobal === index) {
+                        ctx.fillStyle = players[geomIndex].color.replace(')', ', 0.45)').replace('var(', 'rgba('); 
+                        ctx.fillRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        ctx.strokeStyle = getBorderColor(players[geomIndex].color);
+                        ctx.strokeRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
+                });
+                if (ACTIVE_SAFE_SQUARE_INDICES.includes(index)) {
+                    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--safe-star-color').trim();
+                    ctx.fillRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE); 
+                    ctx.fillStyle = '#000'; ctx.font = `${CELL_SIZE * 0.65}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('★', (sq[0] + 0.5) * CELL_SIZE, (sq[1] + 0.55) * CELL_SIZE); 
+                    ctx.strokeStyle = '#8c7000'; ctx.lineWidth = 1.5;
+                    ctx.strokeRect(sq[0] * CELL_SIZE, sq[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                }
+            });
+            
+            const mid = Math.floor(GRID_SIZE / 2);
+            ctx.beginPath();
+            ctx.moveTo((mid -1) * CELL_SIZE, mid * CELL_SIZE); ctx.lineTo(mid * CELL_SIZE, (mid-1) * CELL_SIZE);
+            ctx.lineTo((mid +1) * CELL_SIZE, mid * CELL_SIZE); ctx.lineTo(mid * CELL_SIZE, (mid+1) * CELL_SIZE);
+            ctx.closePath(); ctx.fillStyle = '#e0e0e0'; ctx.fill();
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--dark-gray').trim();
+            ctx.lineWidth = 1.5; ctx.stroke();
+
+            players.forEach((player, playerIdx) => {
+                if (!player || !player.tokens || !player.geometry) return;
+                const geom = player.geometry;
+                player.tokens.forEach((token, tokenIdx) => {
+                    let x, yDraw; 
+                    if (token.state === 'home') {
+                        const homeCellWidth = geom.homeArea.w / 2; const homeCellHeight = geom.homeArea.h / 2;
+                        const tokenCellXCenter = (geom.homeArea.x + (tokenIdx % 2) * homeCellWidth + homeCellWidth / 2) * CELL_SIZE;
+                        const tokenCellYCenter = (geom.homeArea.y + Math.floor(tokenIdx / 2) * homeCellHeight + homeCellHeight / 2) * CELL_SIZE;
+                        x = tokenCellXCenter; const coneTotalVisualHeight = (TOKEN_RADIUS * 1.1) * 2.2;
+                        yDraw = tokenCellYCenter + coneTotalVisualHeight * 0.3; 
+                    } else if (token.state === 'track') {
+                        const globalPos = token.globalTrackPos;
+                        if (globalPos !== -1 && globalPos < ACTIVE_MAIN_TRACK_COORDS.length) {
+                            const sq = ACTIVE_MAIN_TRACK_COORDS[globalPos];
+                            x = (sq[0] + 0.5) * CELL_SIZE; yDraw = (sq[1] + 0.85) * CELL_SIZE; 
+                        } else { return; }
+                    } else if (token.state === 'homestretch') {
+                        if(token.position >= 0 && token.position < geom.homePathSquaresGrid.length) {
+                            const sq = geom.homePathSquaresGrid[token.position];
+                            x = (sq[0] + 0.5) * CELL_SIZE; yDraw = (sq[1] + 0.85) * CELL_SIZE;
+                        } else { return; }
+                    } else { 
+                        const finalHomeSqIdx = Math.min(HOME_STRETCH_LENGTH -1, geom.homePathSquaresGrid.length -1);
+                        const finalHomeSq = geom.homePathSquaresGrid[finalHomeSqIdx];
+                        const offsetX = (tokenIdx - (TOKENS_PER_PLAYER -1)/2) * TOKEN_RADIUS * 0.5;
+                        x = (finalHomeSq[0] + 0.5) * CELL_SIZE + offsetX; yDraw = (finalHomeSq[1] + 0.85) * CELL_SIZE;
+                    }
+                    token.displayPos = {x: x, y: yDraw}; 
+                    drawToken(x, yDraw, player.color, token, playerIdx);
+                });
+            });
+        }
+        function drawToken(x, y, color, tokenData, playerIndexOfTokenOwner) { /* ... same cone drawing ... */
+            const visualSize = TOKEN_RADIUS * 1.1; const coneHeight = visualSize * 2.2;   
+            const baseHeight = coneHeight * 0.20; const baseWidth  = visualSize * 1.8;   
+            const bodyHeight = coneHeight - baseHeight; const topPointY = y - coneHeight;         
+            const bodyBaseY = y - baseHeight;         
+            ctx.save(); ctx.fillStyle = color;
+            ctx.fillRect(x - baseWidth / 2, y - baseHeight, baseWidth, baseHeight);
+            ctx.beginPath(); ctx.moveTo(x, topPointY); ctx.lineTo(x - baseWidth / 2, bodyBaseY); 
+            ctx.lineTo(x + baseWidth / 2, bodyBaseY); ctx.closePath(); ctx.fill();
+            const outlineColor = getBorderColor(color); ctx.strokeStyle = outlineColor; ctx.lineWidth = 1.5;
+            ctx.strokeRect(x - baseWidth / 2, y - baseHeight, baseWidth, baseHeight);
+            ctx.beginPath(); ctx.moveTo(x, topPointY); ctx.lineTo(x - baseWidth / 2, bodyBaseY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x, topPointY); ctx.lineTo(x + baseWidth / 2, bodyBaseY); ctx.stroke();
+            if (players.length > 0 && turnOrder.length > 0) { 
+                const currentPlayerRealIndex = turnOrder[currentPlayerTurnIndex];
+                if (humanPlayerCanMove && playerIndexOfTokenOwner === currentPlayerRealIndex) {
+                    const isMovable = possibleMovesForHuman.some(move => move.tokenIndex === tokenData.id);
+                    if (isMovable) {
+                        ctx.strokeStyle = 'gold'; ctx.lineWidth = 3;
+                        ctx.strokeRect(x - baseWidth / 2, y - baseHeight, baseWidth, baseHeight);
+                        ctx.beginPath(); ctx.moveTo(x, topPointY); ctx.lineTo(x - baseWidth / 2, bodyBaseY); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(x, topPointY); ctx.lineTo(x + baseWidth / 2, bodyBaseY); ctx.stroke();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+        // --- Other Ludo logic functions remain the same from your 'cone' version, adapted to new variables.
+        // Ensure `getPossibleMoves`, `executeMove`, `aiMakeMove` correctly use ACTIVE_* constants.
+
+        // --- Initialize Profile on Load ---
+        window.onload = () => {
+            initPlayerProfile(); // Sets up profile, bet options, player count options
+        };
+
+    </script>
+</body>
+</html>
