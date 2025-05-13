@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ultimate Ludo Game</title>
+  <style>
+    body {
+      background: #ecf0f1;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    #ludoCanvas {
+      background: white;
+      border: 5px solid #2c3e50;
+      margin: 20px auto;
+      display: block;
+    }
+
+    .dice-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .dice {
+      width: 60px;
+      height: 60px;
+      background: white;
+      border: 3px solid #333;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: bold;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transform: rotate3d(1, 1, 0, 0deg);
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .safe-zone {
+      fill: rgba(255, 215, 0, 0.4);
+      stroke: gold;
+      stroke-width: 2;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="ludoCanvas" width="520" height="520"></canvas>
+
+<div class="dice-container">
+  <div class="dice" id="dice">🎲</div>
+</div>
+
+<script>
+const canvas = document.getElementById('ludoCanvas');
+const ctx = canvas.getContext('2d');
+const tileSize = 40;
+const totalSize = 45;
+const boardPath = [
+  {x: 1, y: 0}, {x: 2, y: 0}, {x: 3, y: 0}, {x: 4, y: 0},
+  {x: 5, y: 0}, {x: 6, y: 0}, {x: 6, y: 1}, {x: 6, y: 2},
+  {x: 6, y: 3}, {x: 6, y: 4}, {x: 6, y: 5}, {x: 6, y: 6},
+  {x: 5, y: 6}, {x: 4, y: 6}, {x: 3, y: 6}, {x: 2, y: 6},
+  {x: 1, y: 6}, {x: 0, y: 6}, {x: 0, y: 7}, {x: 0, y: 8},
+  {x: 0, y: 9}, {x: 0, y: 10}, {x: 0, y: 11}, {x: 0, y: 12},
+  {x: 1, y: 12}, {x: 2, y: 12}, {x: 3, y: 12}, {x: 4, y: 12},
+  {x: 5, y: 12}, {x: 6, y: 12}, {x: 6, y: 11}, {x: 6, y: 10},
+  {x: 6, y: 9}, {x: 6, y: 8}, {x: 6, y: 7}, {x: 6, y: 6},
+];
+
+const safeZones = [0, 8, 13, 21, 26, 34];
+
+let token = { position: 0, color: "#e74c3c" };
+
+function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  boardPath.forEach((cell, index) => {
+    ctx.beginPath();
+    ctx.rect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.strokeStyle = "#ccc";
+    ctx.stroke();
+
+    if (safeZones.includes(index)) {
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+      ctx.fillRect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
+      ctx.strokeStyle = "gold";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
+    }
+  });
+
+  drawToken();
+}
+
+function drawToken() {
+  const cell = boardPath[token.position];
+  ctx.beginPath();
+  ctx.arc(cell.x * tileSize + tileSize/2, cell.y * tileSize + tileSize/2, 12, 0, Math.PI * 2);
+  ctx.fillStyle = token.color;
+  ctx.fill();
+  ctx.strokeStyle = "#000";
+  ctx.stroke();
+}
+
+function moveToken(steps) {
+  const targetPos = token.position + steps;
+  const move = () => {
+    if (token.position < targetPos && token.position < boardPath.length - 1) {
+      token.position++;
+      drawBoard();
+      requestAnimationFrame(() => setTimeout(move, 200));
+    }
+  };
+  move();
+}
+
+function rollDice() {
+  const dice = document.getElementById('dice');
+  const rolled = Math.floor(Math.random() * 6) + 1;
+
+  dice.style.transform = 'rotate3d(1, 1, 0, 360deg)';
+  dice.textContent = '';
+  setTimeout(() => {
+    dice.style.transform = 'rotate3d(1, 1, 0, 0deg)';
+    dice.textContent = rolled;
+    moveToken(rolled);
+  }, 500);
+}
+
+drawBoard();
+document.getElementById('dice').addEventListener('click', rollDice);
+</script>
+
+</body>
+</html>
