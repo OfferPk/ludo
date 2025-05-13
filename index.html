@@ -1,0 +1,1161 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Token Ludo: Legacy of Six</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
+      min-height: 100vh;
+    }
+    h1 {
+      color: #333;
+      margin: 20px 0;
+    }
+    #controls {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 800px;
+    }
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .mode-btn {
+      background: #4CAF50;
+      color: white;
+    }
+    .mode-btn:hover {
+      background: #45a049;
+    }
+    .feature-btn {
+      background: #2196F3;
+      color: white;
+    }
+    .feature-btn:hover {
+      background: #1976D2;
+    }
+    .danger-btn {
+      background: #f44336;
+      color: white;
+    }
+    .danger-btn:hover {
+      background: #d32f2f;
+    }
+    #board {
+      position: relative;
+      width: 800px;
+      height: 800px;
+      background: #ffffff;
+      border: 5px solid #333;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      overflow: hidden;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    .tile {
+      width: 40px;
+      height: 40px;
+      margin: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      transition: transform 0.2s;
+    }
+    .tile:hover {
+      transform: scale(1.05);
+    }
+    .main-path {
+      background: #f0f0f0;
+    }
+    .safe-zone {
+      background: #fffde7;
+      border-color: #d4af37;
+    }
+    .safe-zone::after {
+      content: '⭐';
+      font-size: 20px;
+    }
+    .home-tile {
+      border: 2px dashed #333;
+    }
+    .token {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      position: absolute;
+      border: 2px solid #fff;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 5;
+      transition: transform 0.2s;
+    }
+    .token:hover {
+      transform: scale(1.2);
+    }
+    .endpoint {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      background: white;
+      border: 2px solid black;
+      border-radius: 50%;
+      z-index: 5;
+    }
+    .player-token {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .arrow {
+      position: absolute;
+      font-size: 24px;
+      z-index: 10;
+    }
+    #dice-container {
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    #dice {
+      font-size: 28px;
+      width: 60px;
+      height: 60px;
+      background: #fff;
+      border: 4px solid #333;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .buy-six-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 2px solid #4CAF50;
+      background: #c8e6c9;
+      color: #2e7d32;
+      transition: all 0.3s ease;
+    }
+    .buy-six-btn:hover {
+      background: #a5d6a7;
+    }
+    #turn-indicator {
+      font-size: 20px;
+      margin-top: 10px;
+      font-weight: bold;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: #f0f0f0;
+    }
+    .rules-section {
+      max-width: 800px;
+      width: 100%;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .rule-category {
+      margin-bottom: 25px;
+    }
+    .rule-category h3 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    ul {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+    .color-example {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .player-name {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .valid-move {
+      outline: 3px solid blue;
+    }
+    .capture {
+      animation: flash 1s;
+    }
+    @keyframes flash {
+      0% { background-color: red; }
+      50% { background-color: transparent; }
+      100% { background-color: red; }
+    }
+    .token-info {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .player-balance {
+      background: #f5f5f5;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .token-balance {
+      color: gold;
+      font-weight: bold;
+    }
+    .token-icon {
+      font-size: 18px;
+      vertical-align: middle;
+    }
+    .game-stats {
+      margin-top: 30px;
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 10px;
+      max-width: 800px;
+      width: 100%;
+    }
+    .token-store {
+      margin-top: 20px;
+      background: #fff3e0;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .countdown-bar {
+      width: 200px;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .countdown-progress {
+      width: 100%;
+      height: 100%;
+      background: #4CAF50;
+      transition: width 5s linear;
+    }
+    .auto-mode-toggle {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+    input:checked .slider:before {
+      transform: translateX(26px);
+    }
+    .countdown-container {
+      position: relative;
+      width: 200px;
+      margin-top: 10px;
+    }
+    .countdown-text {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      color: #333;
+    }
+    .auto-mode-status {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    @media (max-width: 800px) {
+      #board {
+        width: 95vw;
+        height: 95vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Token Ludo: Legacy of Six</h1>
+  
+  <div id="controls">
+    <button class="btn mode-btn" onclick="generateBoard(3, true)">3 Player Table</button>
+    <button class="btn mode-btn" onclick="generateBoard(6, true)">6 Player Table</button>
+    <button class="btn feature-btn" onclick="togglePowerups()">Toggle Power-Ups</button>
+    <button class="btn danger-btn" onclick="toggleTeamMode()">Team Mode</button>
+  </div>
+  
+  <div id="dice-container">
+    <div id="dice">🎲</div>
+    <div class="token-info">
+      <div id="turn-indicator"></div>
+      <div id="player-balances"></div>
+    </div>
+    <button class="btn mode-btn" onclick="rollDice()" id="rollButton">Roll Dice</button>
+    <button class="btn buy-six-btn" onclick="buySix()" id="buySixBtn" style="display: none;">Buy a 6 (50,000 🪙)</button>
+    
+    <div class="auto-mode-toggle">
+      <label for="autoModeToggle">Auto Mode:</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="autoModeToggle" onchange="toggleAutoMode(this.checked)">
+        <span class="slider"></span>
+      </label>
+      <div class="auto-mode-status" id="autoModeStatus">OFF</div>
+    </div>
+    
+    <div class="countdown-container">
+      <div class="countdown-text" id="countdownText">Time: 5</div>
+      <div class="countdown-bar">
+        <div class="countdown-progress" id="countdownProgress"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="board"></div>
+
+  <div class="rules-section">
+    <div class="rule-category">
+      <h3>🔥 Unique Mechanics & Rules</h3>
+      <ul>
+        <li>🎲 Basic Dice Roll & Movement: Roll a 6 to move out of HOME, move clockwise</li>
+        <li>💸 <strong>Token Economy:</strong> In 6-player, spend 50,000 tokens to buy a 6</li>
+        <li>🧠 Strategic Movement: Exact count needed to reach HOME, can't land on your own token</li>
+        <li>🛡 Power-Ups: Land on star tiles for 2-turn shield, swap positions instead of capturing</li>
+        <li>🏁 Victory Condition: First to get all 4 tokens to HOME wins</li>
+      </ul>
+    </div>
+    
+    <div class="game-stats">
+      <h4>🧩 Game Layout</h4>
+      <div class="tile-count">
+        <span>🟨 3P: 36 Main Tiles</span>
+        <span>🟦 6P: 52 Main Tiles</span>
+        <span>🟨 3P: 9 Home Entries</span>
+        <span>🟦 6P: 24 Home Entries</span>
+        <span>🟨 3P: 6 Safe Zones</span>
+        <span>🟦 6P: 8-12 Safe Zones</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPlayer = 0;
+    let consecutiveSixes = 0;
+    let currentDiceValue = 0;
+    let tokenPositions = [];
+    let players = 3;
+    let isFast = true;
+    let selectedToken = null;
+    let colors = ['red', 'green', 'blue', 'yellow', 'purple', 'teal'];
+    let gameOver = false;
+    let powerUpsEnabled = false;
+    let teamMode = false;
+    let playerTeams = {};
+    let playerBalances = [];
+    let autoModeEnabled = false;
+    let moveTimeout;
+    let rollTimeout;
+    let countdownInterval;
+    let autoMoveCountdown = 5;
+    let autoRollCountdown = 7;
+
+    // Auto-mode toggle
+    function toggleAutoMode(isEnabled) {
+      autoModeEnabled = isEnabled;
+      document.getElementById('autoModeStatus').textContent = isEnabled ? 'ON' : 'OFF';
+      if (!isEnabled && moveTimeout) {
+        clearTimeout(moveTimeout);
+        document.getElementById('countdownProgress').style.width = '100%';
+        document.getElementById('countdownText').textContent = 'Time: 5';
+      }
+    }
+
+    function generateBoard(numPlayers, fastMode) {
+      gameOver = false;
+      players = numPlayers;
+      isFast = fastMode;
+      currentPlayer = 0;
+      consecutiveSixes = 0;
+      currentDiceValue = 0;
+      selectedToken = null;
+      tokenPositions = [];
+      playerBalances = Array(numPlayers).fill(100000); // Starting balance
+      document.getElementById('dice').textContent = '🎲';
+      document.getElementById('turn-indicator').textContent = `Player ${currentPlayer + 1}'s Turn`;
+      document.getElementById('buySixBtn').style.display = numPlayers === 6 ? 'inline-block' : 'none';
+      document.getElementById('autoModeToggle').checked = false;
+      autoModeEnabled = false;
+      document.getElementById('autoModeStatus').textContent = 'OFF';
+      updatePlayerBalances();
+      
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      
+      if (numPlayers === 3) {
+        generate3PlayerBoard();
+      } else {
+        generate6PlayerBoard();
+      }
+    }
+
+    function updatePlayerBalances() {
+      const balanceDiv = document.getElementById('player-balances');
+      balanceDiv.innerHTML = playerBalances
+        .map((balance, i) => {
+          const color = colors[i % 6];
+          return `<span class="player-balance" style="color:${color}">${colors[i % 6] === 'yellow' ? '🟡' : colors[i % 6] === 'red' ? '🔴' : colors[i % 6] === 'green' ? '🟢' : '🔵'} Player ${i+1}: ${balance.toLocaleString()} <span class="token-icon">🪙</span></span>`;
+        })
+        .join(' | ');
+    }
+
+    function generate3PlayerBoard() {
+      const board = document.getElementById('board');
+      const tileSize = 45;
+      const center = 400;
+      const playerColors = colors.slice(0, 3);
+      
+      // Create triangular path
+      const triangleSize = 500;
+      const triangleHeight = Math.sqrt(3)/2 * triangleSize;
+      const centerX = 400;
+      const centerY = 400;
+      
+      // Calculate triangle points
+      const points = [
+        {x: centerX, y: centerY - triangleHeight/2},
+        {x: centerX - triangleSize/2, y: centerY + triangleHeight/2},
+        {x: centerX + triangleSize/2, y: centerY + triangleHeight/2}
+      ];
+      
+      playerColors.forEach((color, i) => {
+        const startArea = document.createElement('div');
+        startArea.style.position = 'absolute';
+        startArea.style.width = '100px';
+        startArea.style.height = '100px';
+        startArea.style.left = `${points[i].x - 50}px`;
+        startArea.style.top = `${points[i].y - 50}px`;
+        startArea.style.border = '2px dashed #333';
+        board.appendChild(startArea);
+        
+        const playerName = document.createElement('div');
+        playerName.className = 'player-name';
+        playerName.style.backgroundColor = color;
+        playerName.style.color = ['#fff', '#ff0'].includes(color) ? '#000' : '#fff';
+        playerName.textContent = `Player ${i+1}`;
+        startArea.appendChild(playerName);
+        
+        // Tokens
+        for (let t = 0; t < 4; t++) {
+          const token = document.createElement('div');
+          token.className = 'player-token token';
+          token.style.backgroundColor = color;
+          token.textContent = t + 1;
+          token.dataset.player = i;
+          token.dataset.token = t;
+          token.style.left = `${10 + (t % 2) * 20}px`;
+          token.style.top = `${10 + Math.floor(t / 2) * 20}px`;
+          startArea.appendChild(token);
+          token.addEventListener('click', () => selectToken(i, t));
+        }
+        
+        tokenPositions.push([0, 0, 0, 0]);
+      });
+      
+      // Create triangular path
+      for (let i = 0; i < 3; i++) {
+        const nextI = (i + 1) % 3;
+        const steps = 12;
+        const dx = points[nextI].x - points[i].x;
+        const dy = points[nextI].y - points[i].y;
+        const angle = Math.atan2(dy, dx);
+        
+        for (let s = 0; s < steps; s++) {
+          const progress = s / steps;
+          const x = points[i].x + dx * progress;
+          const y = points[i].y + dy * progress;
+          
+          const tile = document.createElement('div');
+          tile.className = 'tile main-path';
+          tile.style.left = `${x - 20}px`;
+          tile.style.top = `${y - 20}px`;
+          tile.style.background = playerColors[i % 3];
+          tile.style.opacity = '0.3';
+          board.appendChild(tile);
+          
+          if (s % 6 === 0) {
+            const safeZone = tile.cloneNode(true);
+            safeZone.className = 'tile safe-zone';
+            safeZone.style.background = 'yellow';
+            safeZone.style.opacity = '1';
+            safeZone.style.border = '2px solid #d4af37';
+            board.replaceChild(safeZone, tile);
+          }
+        }
+      }
+    }
+
+    function generate6PlayerBoard() {
+      const board = document.getElementById('board');
+      const tileSize = 40;
+      const boardSize = 800;
+      const center = boardSize / 2;
+      
+      const playerColors = colors;
+      const positions = [
+        {x: 100, y: 100},   // Top-left
+        {x: 400, y: 100},   // Top-center
+        {x: 650, y: 100},   // Top-right
+        {x: 650, y: 400},   // Right-center
+        {x: 650, y: 650},   // Bottom-right
+        {x: 400, y: 650}    // Bottom-center
+      ];
+      
+      playerColors.forEach((color, i) => {
+        const startArea = document.createElement('div');
+        startArea.style.position = 'absolute';
+        startArea.style.width = '100px';
+        startArea.style.height = '100px';
+        startArea.style.left = `${positions[i].x}px`;
+        startArea.style.top = `${positions[i].y}px`;
+        startArea.style.border = '2px dashed #333';
+        board.appendChild(startArea);
+        
+        const playerName = document.createElement('div');
+        playerName.className = 'player-name';
+        playerName.style.backgroundColor = color;
+        playerName.style.color = ['#fff', '#ff0'].includes(color) ? '#000' : '#fff';
+        playerName.textContent = `Player ${i+1}`;
+        startArea.appendChild(playerName);
+        
+        for (let t = 0; t < 4; t++) {
+          const token = document.createElement('div');
+          token.className = 'player-token token';
+          token.style.backgroundColor = color;
+          token.textContent = t + 1;
+          token.dataset.player = i;
+          token.dataset.token = t;
+          token.style.left = `${10 + (t % 2) * 20}px`;
+          token.style.top = `${10 + Math.floor(t / 2) * 20}px`;
+          startArea.appendChild(token);
+          token.addEventListener('click', () => selectToken(i, t));
+        }
+        
+        tokenPositions.push([0, 0, 0, 0]);
+      });
+      
+      // Create square path
+      const pathLength = 52;
+      const path = [];
+      
+      // Top side
+      for (let i = 0; i < 13; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile main-path';
+        tile.style.left = `${150 + i * 40}px`;
+        tile.style.top = '300px';
+        board.appendChild(tile);
+        path.push(tile);
+      }
+      
+      // Right side
+      for (let i = 0; i < 12; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile main-path';
+        tile.style.left = '670px';
+        tile.style.top = `${300 + (i + 1) * 40}px`;
+        board.appendChild(tile);
+        path.push(tile);
+      }
+      
+      // Bottom side
+      for (let i = 0; i < 13; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile main-path';
+        tile.style.left = `${670 - i * 40}px`;
+        tile.style.top = '780px';
+        board.appendChild(tile);
+        path.push(tile);
+      }
+      
+      // Left side
+      for (let i = 0; i < 12; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile main-path';
+        tile.style.left = '150px';
+        tile.style.top = `${780 - (i + 1) * 40}px`;
+        board.appendChild(tile);
+        path.push(tile);
+      }
+      
+      // Add safe zones every 6-7 tiles
+      [5, 12, 19, 26, 33, 40, 47, 54].forEach(pos => {
+        if (pos < path.length) {
+          const safeZone = path[pos].cloneNode(true);
+          safeZone.className = 'tile safe-zone';
+          safeZone.style.background = 'yellow';
+          safeZone.style.opacity = '1';
+          safeZone.style.border = '2px solid #d4af37';
+          board.replaceChild(safeZone, path[pos]);
+        }
+      });
+    }
+
+    function togglePowerups() {
+      powerUpsEnabled = !powerUpsEnabled;
+      alert(`Power-Ups are now ${powerUpsEnabled ? 'enabled' : 'disabled'}`);
+    }
+
+    function toggleTeamMode() {
+      teamMode = !teamMode;
+      
+      if (teamMode) {
+        playerTeams = {};
+        for (let i = 0; i < players; i++) {
+          playerTeams[i] = Math.floor(i / 2);
+        }
+        alert("Team mode enabled! Teams are 1&2, 3&4, 5&6");
+      } else {
+        playerTeams = {};
+        alert("Team mode disabled");
+      }
+    }
+
+    function buySix() {
+      if (players !== 6 || currentDiceValue !== 0) return;
+      
+      if (playerBalances[currentPlayer] >= 50000) {
+        playerBalances[currentPlayer] -= 50000;
+        updatePlayerBalances();
+        moveTokenOut(currentPlayer);
+        alert("You bought a 6! Moved token out of home.");
+        // Immediately trigger auto-move if auto-mode is on
+        if (autoModeEnabled) {
+          startMoveCountdown();
+        }
+      } else {
+        alert("Not enough tokens to buy a 6!");
+      }
+    }
+
+    function moveTokenOut(player) {
+      for (let t = 0; t < 4; t++) {
+        if (tokenPositions[player][t] === 0) {
+          tokenPositions[player][t] = 1;
+          updateTokenPosition(player, t);
+          checkKill(player, t);
+          consecutiveSixes = 1;
+          alert("Bought 6: Token moved out of home!");
+          break;
+        }
+      }
+    }
+
+    function rollDice() {
+      if (gameOver) return;
+      
+      if (consecutiveSixes >= 3) {
+        alert(`Player ${currentPlayer + 1} lost turn for rolling 3 sixes!`);
+        consecutiveSixes = 0;
+        switchPlayer();
+        return;
+      }
+
+      currentDiceValue = Math.floor(Math.random() * 6) + 1;
+      document.getElementById('dice').textContent = currentDiceValue;
+
+      if (currentDiceValue === 6) {
+        consecutiveSixes++;
+      } else {
+        consecutiveSixes = 0;
+      }
+
+      if (currentDiceValue !== 6 && currentDiceValue !== 5 && !hasMovableToken(currentPlayer)) {
+        alert(`Player ${currentPlayer + 1} has no movable tokens!`);
+        consecutiveSixes = 0;
+        switchPlayer();
+      }
+      
+      // Start auto-roll countdown
+      if (autoModeEnabled) {
+        startAutoRollCountdown();
+      }
+    }
+
+    function startAutoRollCountdown() {
+      let count = autoRollCountdown;
+      const rollIndicator = document.getElementById('dice-container');
+      
+      if (rollTimeout) clearTimeout(rollTimeout);
+      if (countdownInterval) clearInterval(countdownInterval);
+      
+      const countdownText = document.getElementById('countdownText');
+      const countdownProgress = document.getElementById('countdownProgress');
+      countdownText.textContent = `Time: ${autoMoveCountdown}`;
+      countdownProgress.style.width = '100%';
+      
+      if (currentDiceValue === 0) {
+        countdownInterval = setInterval(() => {
+          count--;
+          if (count > 0) {
+            countdownText.textContent = `Time: ${count}`;
+            countdownProgress.style.width = `${(count / autoRollCountdown) * 100}%`;
+          } else {
+            clearInterval(countdownInterval);
+            if (autoModeEnabled) {
+              rollDice();
+            }
+          }
+        }, 1000);
+      }
+    }
+
+    function hasMovableToken(player) {
+      for (let i = 0; i < 4; i++) {
+        if (tokenPositions[player][i] === 0 || 
+            tokenPositions[player][i] + currentDiceValue <= 11) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function selectToken(player, token) {
+      if (gameOver || currentDiceValue === 0 || player !== currentPlayer) return;
+      
+      if (rollTimeout) {
+        clearTimeout(rollTimeout);
+        document.getElementById('countdownText').textContent = 'Time: 5';
+        document.getElementById('countdownProgress').style.width = '100%';
+      }
+      
+      const pos = tokenPositions[player][token];
+      
+      if (pos === 0 && currentDiceValue !== 6 && playerBalances[player] < 50000) {
+        alert("Need to roll 6 or buy tokens to move out!");
+        return;
+      }
+      
+      if (currentDiceValue === 5) {
+        if (pos === 0) {
+          alert("Need to roll 6 to move token out of home!");
+          return;
+        }
+        tokenPositions[player][token] = 6;
+        updateTokenPosition(player, token);
+        checkKill(player, token);
+        checkWin(player);
+        consecutiveSixes = 0;
+        switchPlayer();
+      } else if (pos === 0 && currentDiceValue === 6) {
+        tokenPositions[player][token] = 1;
+        updateTokenPosition(player, token);
+        checkKill(player, token);
+        // Start move countdown for extra turn
+        if (autoModeEnabled) {
+          startMoveCountdown();
+        }
+      } else if (pos > 0 && pos < 11) {
+        const newPos = pos + currentDiceValue;
+        if (newPos <= 11) {
+          let tokenOccupied = false;
+          for (let t = 0; t < 4; t++) {
+            if (t !== token && tokenPositions[player][t] === newPos) {
+              tokenOccupied = true;
+              break;
+            }
+          }
+          
+          if (tokenOccupied) {
+            alert("Cannot land on your own token!");
+            return;
+          }
+          
+          tokenPositions[player][token] = newPos;
+          updateTokenPosition(player, token);
+          
+          if (powerUpsEnabled) {
+            if (newPos === 6) {
+              alert("Shield activated! Protected for 2 turns!");
+            }
+            if (newPos === 13) {
+              alert("Swap Spot activated! Can swap with opponent!");
+            }
+          }
+          
+          checkKill(player, token);
+          checkWin(player);
+        }
+      }
+      
+      if (currentDiceValue !== 6) {
+        consecutiveSixes = 0;
+        switchPlayer();
+      } else {
+        alert("Roll again!");
+        if (autoModeEnabled) {
+          startAutoRollCountdown();
+        }
+      }
+    }
+
+    function startMoveCountdown() {
+      let count = autoMoveCountdown;
+      const countdownText = document.getElementById('countdownText');
+      const countdownProgress = document.getElementById('countdownProgress');
+      countdownText.textContent = `Time: ${count}`;
+      countdownProgress.style.width = '100%';
+      
+      if (moveTimeout) clearTimeout(moveTimeout);
+      if (countdownInterval) clearInterval(countdownInterval);
+      
+      countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownText.textContent = `Time: ${count}`;
+          countdownProgress.style.width = `${(count / autoMoveCountdown) * 100}%`;
+        } else {
+          clearInterval(countdownInterval);
+          if (autoModeEnabled) {
+            autoSelectToken(currentPlayer);
+          }
+        }
+      }, 1000);
+    }
+
+    function autoSelectToken(player) {
+      // AI Logic for auto-move
+      const tokens = tokenPositions[player];
+      let bestToken = -1;
+      
+      // 1. Prioritize capture
+      for (let t = 0; t < 4; t++) {
+        if (tokens[t] === 0) continue;
+        const targetPos = tokens[t] + currentDiceValue;
+        if (targetPos > 11) continue;
+        
+        for (let p = 0; p < players; p++) {
+          if (p === player) continue;
+          if (teamMode && playerTeams[p] === playerTeams[player]) continue;
+          
+          for (let t2 = 0; t2 < 4; t2++) {
+            if (tokens[t] + currentDiceValue === tokenPositions[p][t2]) {
+              bestToken = t;
+              break;
+            }
+          }
+          if (bestToken !== -1) break;
+        }
+      }
+      
+      // 2. Enter final home
+      if (bestToken === -1) {
+        for (let t = 0; t < 4; t++) {
+          if (tokens[t] === 0) continue;
+          if (tokens[t] + currentDiceValue === 11) {
+            bestToken = t;
+            break;
+          }
+        }
+      }
+      
+      // 3. Move furthest token
+      if (bestToken === -1) {
+        let maxProgress = -1;
+        for (let t = 0; t < 4; t++) {
+          if (tokens[t] === 0) continue;
+          if (tokens[t] > maxProgress) {
+            maxProgress = tokens[t];
+            bestToken = t;
+          }
+        }
+      }
+      
+      // 4. Avoid danger tiles
+      if (bestToken === -1) {
+        let safeToken = -1;
+        for (let t = 0; t < 4; t++) {
+          if (tokens[t] === 0 || tokens[t] + currentDiceValue > 11) continue;
+          const newPos = tokens[t] + currentDiceValue;
+          if (!isSafeZone(newPos)) {
+            bestToken = t;
+            break;
+          } else if (safeToken === -1) {
+            safeToken = t;
+          }
+        }
+        if (bestToken === -1 && safeToken !== -1) {
+          bestToken = safeToken;
+        }
+      }
+      
+      // 5. Random move
+      if (bestToken === -1) {
+        for (let t = 0; t < 4; t++) {
+          if (tokens[t] === 0 || tokens[t] + currentDiceValue <= 11) {
+            bestToken = t;
+            break;
+          }
+        }
+      }
+      
+      if (bestToken !== -1) {
+        selectToken(player, bestToken);
+        alert(`Auto-selected token ${bestToken + 1} for Player ${player + 1}`);
+      } else {
+        alert("No valid moves! Turn skipped");
+        switchPlayer();
+      }
+    }
+
+    function isSafeZone(position) {
+      const safeZones = document.querySelectorAll('.safe-zone');
+      return [...safeZones].some(zone => {
+        const rect = zone.getBoundingClientRect();
+        const tileIndex = [...document.querySelectorAll('.tile')].indexOf(zone);
+        return tileIndex === position - 1;
+      });
+    }
+
+    function updateTokenPosition(player, token) {
+      const tokenElem = document.querySelector(
+        `.token[style*='${player}'][style*='${token}']`
+      );
+      
+      const path = document.querySelectorAll('.main-path');
+      const tileCount = path.length;
+      
+      if (tokenPositions[player][token] === 0) {
+        const home = document.querySelectorAll('.player-token')[player * 4];
+        const homeArea = home ? home.closest('div') : null;
+        if (homeArea) {
+          tokenElem.style.left = `${10 + (token % 2) * 20}px`;
+          tokenElem.style.top = `${10 + Math.floor(token / 2) * 20}px`;
+        }
+      } else if (tokenPositions[player][token] === 11) {
+        const endpoint = document.querySelector('.endpoint');
+        if (endpoint) {
+          tokenElem.style.left = `${endpoint.offsetLeft + 2}px`;
+          tokenElem.style.top = `${endpoint.offsetTop + 2}px`;
+        }
+      } else {
+        const pathElement = document.querySelectorAll('.main-path')[tokenPositions[player][token] - 1];
+        if (pathElement) {
+          tokenElem.style.left = `${pathElement.offsetLeft + 10}px`;
+          tokenElem.style.top = `${pathElement.offsetTop + 10}px`;
+        }
+      }
+    }
+
+    function checkKill(player, token) {
+      const pos = tokenPositions[player][token];
+      
+      if (pos === 0 || pos === 11 || isSafeZone(pos)) return;
+      
+      for (let p = 0; p < players; p++) {
+        if (p === player) continue;
+        if (teamMode && playerTeams[p] === playerTeams[player]) continue;
+        
+        for (let t = 0; t < 4; t++) {
+          if (tokenPositions[p][t] === pos) {
+            tokenPositions[p][t] = 0;
+            updateTokenPosition(p, t);
+            const killedToken = document.querySelector(
+              `.token[style*='${p}'][style*='${t}']`
+            );
+            if (killedToken) {
+              killedToken.classList.add('capture');
+              setTimeout(() => killedToken.classList.remove('capture'), 1000);
+            }
+            alert(`Player ${player + 1} killed Player ${p + 1}'s token!`);
+          }
+        }
+      }
+    }
+
+    function checkWin(player) {
+      const allAtHome = tokenPositions[player].every(pos => pos === 11);
+      if (allAtHome) {
+        gameOver = true;
+        alert(`🎉 Player ${player + 1} wins the game!`);
+        return;
+      }
+      
+      if (teamMode) {
+        const team = playerTeams[player];
+        let allTeamTokensHome = true;
+        
+        for (let p = 0; p < players; p++) {
+          if (playerTeams[p] === team) {
+            if (!tokenPositions[p].every(pos => pos === 11)) {
+              allTeamTokensHome = false;
+              break;
+            }
+          }
+        }
+        
+        if (allTeamTokensHome) {
+          gameOver = true;
+          alert(`🎉 Team ${team + 1} wins the game!`);
+        }
+      }
+    }
+
+    function switchPlayer() {
+      if (moveTimeout) clearTimeout(moveTimeout);
+      if (rollTimeout) clearTimeout(rollTimeout);
+      if (countdownInterval) clearInterval(countdownInterval);
+      
+      currentPlayer = (currentPlayer + 1) % players;
+      document.getElementById('turn-indicator').textContent = `Player ${currentPlayer + 1}'s Turn`;
+      document.getElementById('dice').textContent = '🎲';
+      currentDiceValue = 0;
+      
+      // Auto-roll if auto-mode is on
+      if (autoModeEnabled) {
+        startAutoRollCountdown();
+      }
+    }
+
+    function startAutoRollCountdown() {
+      let count = autoRollCountdown;
+      const countdownText = document.getElementById('countdownText');
+      const countdownProgress = document.getElementById('countdownProgress');
+      countdownText.textContent = `Time: ${count}`;
+      countdownProgress.style.width = '100%';
+      
+      if (rollTimeout) clearTimeout(rollTimeout);
+      if (countdownInterval) clearInterval(countdownInterval);
+      
+      countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownText.textContent = `Time: ${count}`;
+          countdownProgress.style.width = `${(count / autoRollCountdown) * 100}%`;
+        } else {
+          clearInterval(countdownInterval);
+          if (autoModeEnabled) {
+            rollDice();
+            if (currentDiceValue !== 0 && hasMovableToken(currentPlayer)) {
+              startMoveCountdown();
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    // Double-tap for mobile
+    let lastTap = 0;
+    document.getElementById('dice').addEventListener('click', () => {
+      const now = new Date().getTime();
+      if (now - lastTap < 300 && autoModeEnabled) {
+        rollDice();
+        if (hasMovableToken(currentPlayer)) {
+          startMoveCountdown();
+        }
+      } else {
+        if (currentDiceValue === 0) {
+          rollDice();
+        }
+      }
+      lastTap = now;
+    });
+
+    document.querySelectorAll('.token').forEach(token => {
+      token.addEventListener('click', () => {
+        if (autoModeEnabled && currentDiceValue !== 0) {
+          const player = parseInt(token.dataset.player);
+          const tokenIndex = parseInt(token.dataset.token);
+          selectToken(player, tokenIndex);
+        }
+      });
+    });
+
+    // Initialize game
+    generateBoard(3, true);
+  </script>
+</body>
+</html>
+```
