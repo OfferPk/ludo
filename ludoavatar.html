@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Ludo Game</title>
+    <style>
+        :root {
+            /* Enhanced Color Palette */
+            --red: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            --green: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            --blue: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            --yellow: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            --purple: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            --orange: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            --gray: #ecf0f1;
+            --dark-gray: #2c3e50;
+            --light-gray: #f5f6fa;
+            --board-bg: #ffffff;
+            --safe-star-color: #ffd700;
+            --dice-red: #e74c3c;
+            --dice-white: #ffffff;
+            --token-highlight: rgba(255, 228, 0, 0.5);
+        }
+
+        /* Add previous styles here, then add new enhancements below */
+
+        /* New Avatar Selection Styles */
+        .avatar-selection {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .avatar-option {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .avatar-option.selected {
+            border-color: #6e48aa;
+            box-shadow: 0 0 15px rgba(110, 72, 170, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* Power-up Section Styles */
+        .powerups-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 1px solid #eee;
+        }
+
+        .powerup-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .powerup-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #6e48aa;
+            color: white;
+        }
+
+        /* Double Dice Mode Indicator */
+        .double-dice-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        /* Quick Move Buttons */
+        .quick-move-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .quick-move-button {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            background: #6e48aa;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .quick-move-button:hover {
+            transform: translateY(-2px);
+            background: #9d50bb;
+        }
+
+        /* Enhanced Token Animation */
+        @keyframes token-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .token-pulse {
+            animation: token-pulse 1.5s infinite;
+        }
+
+        /* Board Pattern Overlay */
+        .board-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Add previous HTML structure here -->
+
+    <!-- Add new HTML elements for enhancements -->
+    <div class="player-selection" id="playerSelectionScreen">
+        <div class="player-selection-content">
+            <!-- Add avatar selection -->
+            <h3>Select Avatar</h3>
+            <div class="avatar-selection" id="avatarSelection">
+                <div class="avatar-option selected" style="background-image: url('https://i.pravatar.cc/150?img=1')"></div>
+                <div class="avatar-option" style="background-image: url('https://i.pravatar.cc/150?img=3')"></div>
+                <div class="avatar-option" style="background-image: url('https://i.pravatar.cc/150?img=5')"></div>
+                <div class="avatar-option" style="background-image: url('https://i.pravatar.cc/150?img=7')"></div>
+            </div>
+
+            <!-- Add power-ups section -->
+            <div class="powerups-section">
+                <h3>Power-ups (3 remaining)</h3>
+                <div class="powerup-card">
+                    <div class="powerup-icon">🎲</div>
+                    <div>
+                        <h4>Double Dice</h4>
+                        <p>Roll two dice for 3 turns</p>
+                        <button class="quick-move-button" onclick="activatePowerUp('doubleDice')">Activate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add double dice indicator -->
+    <div class="double-dice-indicator" id="doubleDiceIndicator" style="display: none;">
+        Double Dice Active (2 turns left)
+    </div>
+
+    <script>
+        // Add new enhancements to existing code
+
+        // Power-up system
+        let activePowerUps = {
+            doubleDice: { active: false, turnsRemaining: 0 }
+        };
+
+        function activatePowerUp(type) {
+            if(type === 'doubleDice') {
+                activePowerUps.doubleDice = {
+                    active: true,
+                    turnsRemaining: 3
+                };
+                document.getElementById('doubleDiceIndicator').style.display = 'block';
+                updatePowerUpDisplay();
+            }
+        }
+
+        function updatePowerUpDisplay() {
+            const indicator = document.getElementById('doubleDiceIndicator');
+            if(activePowerUps.doubleDice.active) {
+                indicator.textContent = `Double Dice Active (${activePowerUps.doubleDice.turnsRemaining} turns left)`;
+            }
+        }
+
+        // Enhanced dice roll with power-ups
+        function rollDice() {
+            let rollCount = activePowerUps.doubleDice.active ? 2 : 1;
+            let rolls = [];
+            
+            for(let i = 0; i < rollCount; i++) {
+                rolls.push(Math.floor(Math.random() * 6) + 1);
+            }
+
+            currentDiceValue = rolls.reduce((a, b) => a + b, 0);
+            
+            if(activePowerUps.doubleDice.active) {
+                activePowerUps.doubleDice.turnsRemaining--;
+                if(activePowerUps.doubleDice.turnsRemaining <= 0) {
+                    activePowerUps.doubleDice.active = false;
+                    document.getElementById('doubleDiceIndicator').style.display = 'none';
+                }
+                updatePowerUpDisplay();
+            }
+        }
+
+        // Quick move suggestions
+        function suggestMoves() {
+            const quickMoveContainer = document.createElement('div');
+            quickMoveContainer.className = 'quick-move-buttons';
+            
+            possibleMovesForHuman.forEach(move => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-move-button';
+                btn.textContent = `Move Token ${move.tokenIndex + 1}`;
+                btn.onclick = () => executeMove(currentPlayerTurnIndex, move);
+                quickMoveContainer.appendChild(btn);
+            });
+
+            document.querySelector('.controls').appendChild(quickMoveContainer);
+        }
+
+        // Enhanced AI with difficulty levels
+        function aiMakeMove(playerIndex, possibleMoves) {
+            const difficulty = gameDifficulty;
+            const player = players[playerIndex];
+            
+            // Easy AI - random moves
+            if(difficulty === 'easy') {
+                return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            }
+
+            // Medium AI - basic strategy
+            if(difficulty === 'medium') {
+                const captureMoves = possibleMoves.filter(m => 
+                    m.toState === 'track' && 
+                    !isSafePosition(m.newGlobalTrackPos) && 
+                    players.some(p => p.tokens.some(t => t.globalTrackPos === m.newGlobalTrackPos))
+                );
+
+                if(captureMoves.length > 0) return captureMoves[0];
+                return possibleMoves[possibleMoves.length - 1]; // Prefer last move (usually more advanced)
+            }
+
+            // Hard AI - advanced strategy
+            if(difficulty === 'hard') {
+                // Prefer moves that capture opponents
+                const captureMoves = possibleMoves.filter(m => 
+                    m.toState === 'track' && 
+                    !isSafePosition(m.newGlobalTrackPos) && 
+                    players.some(p => p.tokens.some(t => t.globalTrackPos === m.newGlobalTrackPos))
+                );
+
+                if(captureMoves.length > 0) return captureMoves[0];
+
+                // Prefer moves to safe zones
+                const safeMoves = possibleMoves.filter(m => 
+                    m.toState === 'track' && 
+                    isSafePosition(m.newGlobalTrackPos)
+                );
+
+                if(safeMoves.length > 0) return safeMoves[0];
+
+                // Prefer moving tokens closest to home
+                return possibleMoves.sort((a, b) => 
+                    player.tokens[b.tokenIndex].position - player.tokens[a.tokenIndex].position
+                )[0];
+            }
+
+            return possibleMoves[0];
+        }
+
+        // Initialize avatar selection
+        document.querySelectorAll('.avatar-option').forEach(avatar => {
+            avatar.addEventListener('click', function() {
+                document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>
