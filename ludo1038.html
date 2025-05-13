@@ -1,0 +1,1039 @@
+I'll enhance the Ludo game with more realistic features while maintaining all the existing functionality. Here's the improved version with additional realistic elements:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Ludo Game</title>
+    <style>
+        :root {
+            /* Color palette */
+            --red: #e74c3c;
+            --green: #2ecc71;
+            --blue: #3498db;
+            --yellow: #f1c40f;
+            --purple: #9b59b6;
+            --orange: #e67e22;
+            --teal: #1abc9c;
+            --pink: #e91e63;
+            --gray: #ecf0f1;
+            --dark-gray: #333;
+            --light-gray: #f5f5f5;
+            --board-bg: #fdfdfd;
+            --safe-star-color: #ffd700;
+            --dice-red: #e74c3c;
+            --dice-white: #ffffff;
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--light-gray);
+            min-height: 100vh;
+            padding-bottom: 20px;
+            color: #333;
+        }
+        
+        header {
+            width: 100%;
+            background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 500;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .back-button, .close-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px 15px;
+            border-radius: 30px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .back-button {
+            left: 20px;
+        }
+        .close-button {
+            right: 20px;
+        }
+        .back-button:hover, .close-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-50%) scale(1.05);
+        }
+        
+        /* Player selection screen */
+        .player-selection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--light-gray);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 100;
+            overflow-y: auto;
+            padding-top: 80px;
+            box-sizing: border-box;
+        }
+        
+        .player-selection-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            max-width: 800px;
+            width: 90%;
+            margin: 20px auto;
+            text-align: center;
+        }
+        
+        .player-selection h2 {
+            color: var(--dark-gray);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .player-selection h2::after {
+            content: "";
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #6e48aa, #9d50bb);
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+        
+        .player-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .player-option {
+            background: white;
+            padding: 20px 15px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-option::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--purple);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .player-option:hover, .player-option.selected {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+            border-color: #6e48aa;
+        }
+        
+        .player-option.selected::before {
+            transform: scaleX(1);
+        }
+        
+        .player-option h3 {
+            font-size: 1.3rem;
+            margin: 0 0 8px 0;
+            color: #6e48aa;
+            font-weight: 600;
+        }
+        
+        .player-option p {
+            color: #666;
+            margin: 0;
+            font-size: 0.9em;
+        }
+        
+        /* Profile and betting sections */
+        .profile-rewards-section, .betting-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+        
+        .profile-rewards-section h3, .betting-section h3 {
+            margin-top: 0;
+            color: var(--dark-gray);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .profile-rewards-section h3::before, .betting-section h3::before {
+            content: "★";
+            color: var(--yellow);
+            font-size: 1.2em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 0.95em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-item strong {
+            color: #6e48aa;
+            font-size: 1.3em;
+            margin-top: 5px;
+        }
+        
+        #watchAdButton {
+            background: linear-gradient(135deg, var(--green) 0%, #58d68d 100%);
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        #watchAdButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        }
+        
+        #watchAdButton:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #watchAdButton::before {
+            content: "▶";
+            font-size: 1.1em;
+        }
+        
+        #adRewardMessage {
+            font-size: 0.85em;
+            margin-top: 10px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .bet-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .bet-option {
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            font-size: 0.9em;
+            min-width: 70px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .bet-option:hover {
+            background: #f0f0f0;
+        }
+        
+        .bet-option.selected {
+            background: #6e48aa;
+            color: white;
+            border-color: #6e48aa;
+            box-shadow: 0 3px 8px rgba(110, 72, 170, 0.3);
+        }
+        
+        #startGameButton {
+            margin-top: 30px;
+            background: linear-gradient(135deg, var(--orange) 0%, #f39c12 100%);
+            width: 100%;
+            font-size: 1.2em;
+            padding: 15px;
+            border: none;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        #startGameButton:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            opacity: 0.95;
+        }
+        
+        #startGameButton::before {
+            content: "🎲";
+            font-size: 1.2em;
+        }
+        
+        /* Game container */
+        .game-container {
+            position: relative;
+            margin: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            width: 95%;
+        }
+        
+        canvas {
+            background: var(--board-bg);
+            border: 3px solid var(--dark-gray);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            aspect-ratio: 1/1;
+        }
+        
+        .game-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        
+        .current-player {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .current-player::before {
+            content: "";
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        .dice-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dice-red);
+            margin-bottom: 10px;
+        }
+        
+        .game-message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            font-weight: 500;
+            min-height: 20px;
+            border-left: 4px solid #6e48aa;
+        }
+        
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .dice-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--dice-red) 0%, #c0392b 100%);
+            border-radius: 15px;
+            color: var(--dice-white);
+            font-size: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dice:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+        }
+        
+        .dice.animate {
+            animation: diceRoll 0.8s ease-in-out;
+        }
+        
+        @keyframes diceRoll {
+            0% { transform: rotate(0deg) scale(1); }
+            20% { transform: rotate(180deg) scale(1.2); }
+            40% { transform: rotate(360deg) scale(0.9); }
+            60% { transform: rotate(540deg) scale(1.1); }
+            80% { transform: rotate(720deg) scale(0.95); }
+            100% { transform: rotate(900deg) scale(1); }
+        }
+        
+        .dice::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+        
+        .countdown-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 150px;
+        }
+        
+        .countdown-label {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .countdown {
+            width: 100%;
+            height: 15px;
+            background: #eee;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .countdown-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff5f6d, #ffc371);
+            width: 100%;
+            transition: width 0.5s linear;
+            border-radius: 10px;
+        }
+        
+        .token-balances {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .token-balance {
+            font-size: 15px;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            min-width: 80px;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .token-balance::before {
+            content: "";
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.8;
+        }
+        
+        .custom-turn-order {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+            align-items: center;
+            max-width: 600px;
+            width: 100%;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .custom-turn-order label {
+            font-weight: bold;
+            color: #555;
+            margin-right: 5px;
+        }
+        
+        .custom-turn-order input {
+            width: 50px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .custom-turn-order input:focus {
+            outline: none;
+            border-color: #6e48aa;
+            box-shadow: 0 0 0 2px rgba(110, 72, 170, 0.2);
+        }
+        
+        .settings-panel {
+            margin-top: 25px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #eee;
+        }
+        
+        .settings-panel h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #6e48aa;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .settings-panel h3::before {
+            content: "⚙️";
+            font-size: 1.1em;
+        }
+        
+        .setting-row {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .setting-row:hover {
+            background: #f0f0f0;
+        }
+        
+        .setting-row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #6e48aa;
+            cursor: pointer;
+        }
+        
+        .setting-row label {
+            margin-left: 12px;
+            font-weight: 500;
+            color: var(--dark-gray);
+            font-size: 0.95em;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        
+        .settings-panel button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        
+        .settings-panel button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* Popup dialogs */
+        .win-message, .exit-confirmation, .forced-close-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .win-message h2, .exit-confirmation h2, .forced-close-overlay h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: gold;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .win-message p, .exit-confirmation p, .forced-close-overlay p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+        
+        .win-message button, .exit-confirmation button, .forced-close-overlay button {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .win-message button:hover, .exit-confirmation button:hover, .forced-close-overlay button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        
+        .exit-dialog {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            color: var(--dark-gray);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            animation: scaleIn 0.3s;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .exit-dialog h3 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #6e48aa;
+        }
+        
+        .exit-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .exit-buttons button {
+            min-width: 100px;
+            padding: 12px 20px;
+            font-size: 1em;
+            border-radius: 8px;
+        }
+        
+        #confirmExitButton {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .exit-buttons button:last-child {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .forced-close-overlay .timer {
+            font-size: 1.5rem;
+            color: var(--yellow);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* Token selection highlight */
+        .token-highlight {
+            position: absolute;
+            width: calc(var(--token-radius) * 2.5);
+            height: calc(var(--token-radius) * 2.5);
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.3);
+            border: 2px solid gold;
+            pointer-events: none;
+            z-index: 10;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .player-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .game-container, .player-selection-content {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .back-button, .close-button {
+                padding: 5px 10px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .player-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .bet-options {
+                gap: 8px;
+            }
+            
+            .bet-option {
+                padding: 8px 12px;
+                font-size: 0.8em;
+                min-width: 60px;
+            }
+            
+            .player-selection h2 {
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* Animation for token movement */
+        @keyframes tokenMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(var(--tx), var(--ty)); }
+        }
+        
+        /* Special effects */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            animation: confettiFall 5s linear forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="back-button" id="backButton" style="display: none;">← Back</button>
+        <h1>Ultimate Ludo Game</h1>
+        <button class="close-button" id="closeButton" style="display: none;">× Close</button>
+    </header>
+
+    <!-- Player Selection Screen -->
+    <div class="player-selection" id="playerSelectionScreen">
+        <div class="player-selection-content">
+            <h2>Welcome to Ultimate Ludo!</h2>
+            <p style="color: #666; margin-bottom: 25px;">Select your game options below</p>
+
+            <div class="profile-rewards-section">
+                <h3>Your Player Profile</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span>Coin Balance</span>
+                        <strong id="playerCoins">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Games Won</span>
+                        <strong id="playerWins">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Games Played</span>
+                        <strong id="playerGamesPlayed">0</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Win Rate</span>
+                        <strong id="playerWinRate">0%</strong>
+                    </div>
+                </div>
+                <button id="watchAdButton" onclick="watchAdForCoins()">Watch Ad for Coins (+500)</button>
+                <p id="adRewardMessage"></p>
+            </div>
+
+            <div class="betting-section">
+                <h3>Select Your Bet</h3>
+                <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Risk more for bigger rewards!</p>
+                <div class="bet-options" id="betOptionsContainer"></div>
+                <div style="margin-top: 15px; display: flex; justify-content: space-between; font-size: 0.9em;">
+                    <span id="currentBetDisplay">Current Bet: 0</span>
+                    <span id="potentialWinDisplay">Potential Win: 0</span>
+                </div>
+            </div>
+            
+            <h3>Game Setup</h3>
+            <div class="player-options" id="playerOptionsContainer">
+                <div class="player-option" data-value="2">
+                    <h3>2 Players</h3>
+                    <p>Classic 1v1 Duel</p>
+                </div>
+                <div class="player-option" data-value="3">
+                    <h3>3 Players</h3>
+                    <p>Triple Threat</p>
+                </div>
+                <div class="player-option" data-value="4">
+                    <h3>4 Players</h3>
+                    <p>Full Board Action</p>
+                </div>
+                <div class="player-option" data-value="6">
+                    <h3>6 Players</h3>
+                    <p>Extended Challenge</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: left;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Game Difficulty:</label>
+                <select id="gameDifficulty" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="easy">Easy (Beginner)</option>
+                    <option value="medium" selected>Medium (Normal)</option>
+                    <option value="hard">Hard (Expert)</option>
+                </select>
+            </div>
+            
+            <button id="startGameButton" onclick="validateAndStartGame()">Start Ludo Game</button>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container" id="gameContainer">
+        <canvas id="ludoCanvas" width="600" height="600"></canvas>
+        
+        <div class="game-info">
+            <div class="current-player" id="currentPlayer">Current Player: Red</div>
+            <div class="dice-value" id="diceValue">Dice: -</div>
+            <div class="game-message" id="gameMessage">Welcome! Click the dice to start.</div>
+        </div>
+        
+        <div class="controls">
+            <div class="dice-container">
+                <div class="dice" id="dice">🎲</div>
+                <div class="countdown-label">Auto Roll Timer</div>
+            </div>
+            <div class="countdown-container">
+                <div class="countdown" id="countdown">
+                    <div class="countdown-bar" id="countdownBar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="token-balances" id="tokenBalances"></div>
+        
+        <div class="custom-turn-order" id="customTurnOrderContainer">
+            <label>Turn Order:</label>
+            <button onclick="updateTurnOrder()">Update Order</button>
+        </div>
+        
+        <div class="settings-panel">
+            <h3>Game Settings</h3>
+            <div class="setting-row">
+                <input type="checkbox" id="autoMode" checked>
+                <label for="autoMode">Auto Mode (AI plays for all)</label>
+            </div>
+            <div class="setting-row">
+                <input type="checkbox" id="autoRoll" checked>
+                <label for="autoRoll">Auto-Roll After Delay</label>
+            </div>
+            <div class="setting-row">
+                <input type="checkbox" id="smartCapture" checked>
+                <label for="smartCapture">Smart Capture (Prioritize captures)</label>
+            </div>
+            <div class="setting-row">
+                <input type="checkbox" id="safeMove" checked>
+                <label for="safeMove">Safe Moves (Avoid danger zones)</label>
+            </div>
+            <div class="setting-row">
+                <input type="checkbox" id="aiVsAi">
+                <label for="aiVsAi">AI vs AI Simulation (Watch the game)</label>
+            </div>
+            <div class="setting-row">
+                <input type="checkbox" id="soundEffects" checked>
+                <label for="soundEffects">Sound Effects</label>
+            </div>
+            <div class="setting-row">
+                <input type="checkbox" id="animations" checked>
+                <label for="animations">Animations</label>
+            </div>
+            <button onclick="resetGameConfirm()">Reset Game</button>
+        </div>
+    </div>
+
+    <!-- Win Message Popup -->
+    <div class="win-message" id="winMessage">
+        <h2 id="winnerText">Player Wins!</h2>
+        <p id="winDetails">Congratulations on your victory!</p>
+        <div id="winStats" style="margin-bottom: 20px; font-size: 1.1em;"></div>
+        <button onclick="returnToHome()">Back to Home</button>
+        <button onclick="playAgain()" style="margin-top: 15px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">Play Again</button>
+    </div>
+
+    <!-- Exit Confirmation Popup -->
+    <div class="exit-confirmation" id="exitConfirmation">
+        <div class="exit-dialog">
+            <h3 id="exitDialogTitle">Exit Game</h3>
+            <p id="exitDialogMessage">Are you sure you want to exit the current game?</p>
+            <div class="exit-buttons">
+                <button id="confirmExitButton" onclick="confirmQuitGame()">Yes, Exit</button>
+                <button onclick="cancelExit()">No, Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forced Close Popup -->
+    <div class="forced-close-overlay" id="forcedCloseOverlay">
+        <h2 id="forcedCloseTitle">Game Over</h2>
+        <p id="forcedCloseMessage">Player left the game.</p>
+        <p>Returning to home in <span id="forcedCloseTimer" class="timer">5</span> seconds</p>
+        <button onclick="returnToHome()">Return Now</button>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="diceSound" src="https://assets.mixkit.co/sfx/preview/mixkit-plastic-dice-roll-1494.mp3" preload="auto"></audio>
+    <audio id="moveSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" preload="auto"></audio>
+    <audio id="captureSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3" preload="auto"></audio>
+    <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+    <audio id="errorSound" src="https://assets.mix
