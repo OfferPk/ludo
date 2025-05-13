@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ultimate Ludo Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --red: #e74c3c;
+      --green: #2ecc71;
+      --blue: #3498db;
+      --yellow: #f1c40f;
+      --gray: #ecf0f1;
+      --dark-gray: #2c3e50;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--gray);
+      padding: 20px;
+      text-align: center;
+    }
+
+    h2, h3 {
+      color: var(--dark-gray);
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .gameboard {
+      width: 360px;
+      height: 360px;
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      grid-template-rows: repeat(15, 1fr);
+      background: white;
+      border: 5px solid #333;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .cell {
+      border: 1px solid #ccc;
+    }
+
+    .home-red    { background: var(--red); }
+    .home-green  { background: var(--green); }
+    .home-yellow { background: var(--yellow); }
+    .home-blue   { background: var(--blue); }
+
+    .center-star {
+      grid-column: 7 / span 2;
+      grid-row: 7 / span 2;
+      background: gold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .dice-section {
+      margin-top: 20px;
+    }
+
+    .dice {
+      width: 60px;
+      height: 60px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px auto;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .dice:active {
+      transform: scale(1.1);
+    }
+
+    .current-turn {
+      font-weight: bold;
+      color: #2980b9;
+    }
+
+    .player-profile {
+      border: 2px solid var(--dark-gray);
+      border-radius: 10px;
+      padding: 10px;
+      width: 140px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: inline-block;
+      margin: 0 10px;
+    }
+
+    .player-active {
+      border-color: #2ecc71;
+      background: #eaffea;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎲 Ultimate Ludo Game</h2>
+
+  <div class="game-container">
+    <!-- Gameboard -->
+    <div class="gameboard" id="gameboard">
+      <!-- Color Corners -->
+      <div class="cell home-red" style="grid-column: 1 / span 6; grid-row: 1 / span 6;"></div>
+      <div class="cell home-yellow" style="grid-column: 10 / span 6; grid-row: 1 / span 6;"></div>
+      <div class="cell home-blue" style="grid-column: 1 / span 6; grid-row: 10 / span 6;"></div>
+      <div class="cell home-green" style="grid-column: 10 / span 6; grid-row: 10 / span 6;"></div>
+
+      <!-- Center -->
+      <div class="center-star">⭐</div>
+    </div>
+
+    <!-- Dice Roll UI -->
+    <div class="dice-section">
+      <h3>Current Turn: <span id="currentPlayerName" class="current-turn">Player 1</span></h3>
+      <div class="dice" onclick="rollDice()" id="dice">🎲</div>
+      <p>Click to Roll Dice</p>
+      <p id="diceResult"></p>
+    </div>
+
+    <!-- Players -->
+    <div id="players">
+      <!-- Dynamic Player Cards -->
+    </div>
+  </div>
+
+  <script>
+    const players = [
+      { id: 0, name: "Player 1", color: "red", wins: 0 },
+      { id: 1, name: "Player 2", color: "green", wins: 0 },
+    ];
+
+    let currentPlayerIndex = 0;
+
+    function rollDice() {
+      const roll = Math.floor(Math.random() * 6) + 1;
+      document.getElementById('diceResult').innerText = `${players[currentPlayerIndex].name} rolled a ${roll}! 🎉`;
+      
+      // Move to next player's turn
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      updateCurrentTurn();
+    }
+
+    function updateCurrentTurn() {
+      document.getElementById('currentPlayerName').innerText = players[currentPlayerIndex].name;
+      renderPlayerCards();
+    }
+
+    function renderPlayerCards() {
+      const container = document.getElementById("players");
+      container.innerHTML = "";
+      players.forEach((p, idx) => {
+        const card = document.createElement("div");
+        card.className = "player-profile";
+        if (idx === currentPlayerIndex) card.classList.add("player-active");
+        card.innerHTML = `
+          <h4>${p.name}</h4>
+          <p style="color:${p.color}; font-weight:bold">● ${p.color}</p>
+          <p>Wins: ${p.wins}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Init
+    updateCurrentTurn();
+  </script>
+</body>
+</html>
