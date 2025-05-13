@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ludo Game – Multiple Tokens & 3D Dice</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+    }
+    canvas {
+      background: white;
+      border: 5px solid #333;
+      margin-top: 20px;
+    }
+
+    .dice-container {
+      margin-top: 20px;
+      perspective: 600px;
+    }
+
+    .dice {
+      width: 60px;
+      height: 60px;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(0deg) rotateY(0deg);
+      transition: transform 1s;
+      margin: auto;
+    }
+
+    .face {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: white;
+      border: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .face1 { transform: rotateY(0deg) translateZ(30px); }
+    .face2 { transform: rotateY(90deg) translateZ(30px); }
+    .face3 { transform: rotateY(180deg) translateZ(30px); }
+    .face4 { transform: rotateY(-90deg) translateZ(30px); }
+    .face5 { transform: rotateX(90deg) translateZ(30px); }
+    .face6 { transform: rotateX(-90deg) translateZ(30px); }
+
+    #turnLabel {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Ultimate Ludo Game</h2>
+<div id="turnLabel">Turn: 🔴 Red</div>
+
+<canvas id="ludoCanvas" width="520" height="520"></canvas>
+
+<div class="dice-container">
+  <div class="dice" id="dice">
+    <div class="face face1">1</div>
+    <div class="face face2">2</div>
+    <div class="face face3">3</div>
+    <div class="face face4">4</div>
+    <div class="face face5">5</div>
+    <div class="face face6">6</div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('ludoCanvas');
+const ctx = canvas.getContext('2d');
+const tileSize = 40;
+const boardPath = [
+  {x: 1, y: 0}, {x: 2, y: 0}, {x: 3, y: 0}, {x: 4, y: 0},
+  {x: 5, y: 0}, {x: 6, y: 0}, {x: 6, y: 1}, {x: 6, y: 2},
+  {x: 6, y: 3}, {x: 6, y: 4}, {x: 6, y: 5}, {x: 6, y: 6},
+  {x: 5, y: 6}, {x: 4, y: 6}, {x: 3, y: 6}, {x: 2, y: 6},
+  {x: 1, y: 6}, {x: 0, y: 6}, {x: 0, y: 7}, {x: 0, y: 8},
+  {x: 0, y: 9}, {x: 0, y: 10}, {x: 0, y: 11}, {x: 0, y: 12},
+  {x: 1, y: 12}, {x: 2, y: 12}, {x: 3, y: 12}, {x: 4, y: 12},
+  {x: 5, y: 12}, {x: 6, y: 12}, {x: 6, y: 11}, {x: 6, y: 10},
+  {x: 6, y: 9}, {x: 6, y: 8}, {x: 6, y: 7}, {x: 6, y: 6},
+];
+
+const safeZones = [0, 8, 13, 21, 26, 34];
+
+const tokens = [
+  { color: "red", position: 0 },
+  { color: "blue", position: 0 }
+];
+
+let currentPlayer = 0;
+
+function drawBoard() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  boardPath.forEach((cell, index) => {
+    ctx.beginPath();
+    ctx.rect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.strokeStyle = "#ccc";
+    ctx.stroke();
+
+    if (safeZones.includes(index)) {
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+      ctx.fillRect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
+      ctx.strokeStyle = "gold";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cell.x * tileSize, cell.y * tileSize, tileSize, tileSize);
+    }
+  });
+
+  tokens.forEach((token, i) => {
+    const cell = boardPath[token.position];
+    ctx.beginPath();
+    ctx.arc(
+      cell.x * tileSize + tileSize / 2,
+      cell.y * tileSize + tileSize / 2 + (i * 5),
+      10,
+      0,
+      Math.PI * 2
+    );
+    ctx.fillStyle = token.color;
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+
+function moveToken(index, steps) {
+  const target = Math.min(tokens[index].position + steps, boardPath.length - 1);
+
+  const animate = () => {
+    if (tokens[index].position < target) {
+      tokens[index].position++;
+      drawBoard();
+      requestAnimationFrame(() => setTimeout(animate, 150));
+    }
+  };
+  animate();
+}
+
+function rollDice() {
+  const dice = document.getElementById("dice");
+  const rotationX = Math.floor(Math.random() * 4 + 1) * 90;
+  const rotationY = Math.floor(Math.random() * 4 + 1) * 90;
+  const roll = Math.floor(Math.random() * 6) + 1;
+
+  dice.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+
+  setTimeout(() => {
+    moveToken(currentPlayer, roll);
+    currentPlayer = (currentPlayer + 1) % tokens.length;
+    document.getElementById("turnLabel").textContent =
+      "Turn: " + (currentPlayer === 0 ? "🔴 Red" : "🔵 Blue");
+  }, 1000);
+}
+
+drawBoard();
+document.getElementById("dice").addEventListener("click", rollDice);
+</script>
+
+</body>
+</html>
