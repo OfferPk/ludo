@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate AI Ludo</title>
+    <style>
+        /* Base styles */
+        body { margin: 0; font-family: Arial; background: #2c3e50; }
+        .container { display: flex; padding: 20px; }
+        
+        /* Game Board */
+        #gameBoard { 
+            width: 520px; height: 520px; 
+            background: #ecf0f1; border-radius: 10px;
+            position: relative;
+        }
+        
+        /* 3D Dice */
+        .dice-container {
+            perspective: 1000px;
+            margin: 20px;
+        }
+        .dice {
+            width: 100px; height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.5s;
+        }
+        .dice-face {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: white;
+            border: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+        }
+        /* Dice faces positioning */
+        .front { transform: translateZ(50px); }
+        .back { transform: rotateX(-180deg) translateZ(50px); }
+        .right { transform: rotateY(90deg) translateZ(50px); }
+        .left { transform: rotateY(-90deg) translateZ(50px); }
+        .top { transform: rotateX(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+        
+        /* Player Tokens */
+        .token {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            position: absolute;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 300px;
+            background: white;
+            transition: 0.3s;
+            padding: 20px;
+        }
+        .settings-panel.active { right: 0; }
+        
+        /* Popups */
+        .popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        .popup.active { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Settings Icon -->
+    <div class="settings-icon" onclick="toggleSettings()">⚙️</div>
+    
+    <!-- Game Container -->
+    <div class="container">
+        <!-- Player Profile -->
+        <div class="player-profile">
+            <div class="avatar"></div>
+            <div class="level">Level 13</div>
+            <div class="coins">🪙 5000</div>
+            <div class="diamonds">💎 100</div>
+        </div>
+        
+        <!-- Game Board -->
+        <canvas id="gameBoard" width="520" height="520"></canvas>
+        
+        <!-- Dice -->
+        <div class="dice-container">
+            <div class="dice" id="dice" onclick="rollDice()">
+                <div class="dice-face front">1</div>
+                <div class="dice-face back">2</div>
+                <div class="dice-face right">3</div>
+                <div class="dice-face left">4</div>
+                <div class="dice-face top">5</div>
+                <div class="dice-face bottom">6</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <!-- Settings content here -->
+    </div>
+
+    <!-- Popups -->
+    <div class="popup" id="welcomePopup">
+        <h2>Welcome to AI Ludo!</h2>
+        <p>You received 5000 coins and 100 diamonds!</p>
+    </div>
+
+    <script>
+        // Game Initialization
+        const players = [];
+        let currentPlayer = 0;
+        let diceResult = 0;
+        
+        // Player Class
+        class Player {
+            constructor(color) {
+                this.color = color;
+                this.tokens = Array(4).fill(-1);
+                this.coins = 5000;
+                this.diamonds = 100;
+            }
+        }
+
+        // Initialize Game
+        function initGame(numPlayers) {
+            const colors = ['red', 'blue', 'green', 'yellow', 'pink', 'black'];
+            for(let i=0; i<numPlayers; i++) {
+                players.push(new Player(colors[i]));
+            }
+            drawBoard();
+            checkWelcomeBonus();
+        }
+
+        // Draw Game Board
+        function drawBoard() {
+            const canvas = document.getElementById('gameBoard');
+            const ctx = canvas.getContext('2d');
+            
+            // Draw board path
+            ctx.clearRect(0, 0, 520, 520);
+            // Add board drawing logic here
+        }
+
+        // Dice Roll
+        function rollDice() {
+            const dice = document.getElementById('dice');
+            diceResult = Math.floor(Math.random() * 6) + 1;
+            
+            // Reset animation
+            dice.style.animation = 'none';
+            void dice.offsetWidth; // Trigger reflow
+            dice.style.animation = 'roll 1.5s ease-out';
+            
+            // Apply rotation
+            const rotations = {
+                1: 'rotateX(0deg) rotateY(0deg)',
+                2: 'rotateX(180deg) rotateY(0deg)',
+                3: 'rotateY(90deg) rotateX(0deg)',
+                4: 'rotateY(-90deg) rotateX(0deg)',
+                5: 'rotateX(90deg) rotateY(0deg)',
+                6: 'rotateX(-90deg) rotateY(0deg)'
+            };
+            dice.style.transform = rotations[diceResult];
+            
+            handleDiceResult();
+        }
+
+        // Handle Dice Result
+        function handleDiceResult() {
+            const player = players[currentPlayer];
+            // Game logic here
+        }
+
+        // Check Welcome Bonus
+        function checkWelcomeBonus() {
+            const lastLogin = localStorage.getItem('lastLogin');
+            if(!lastLogin) {
+                showPopup('welcomePopup');
+                localStorage.setItem('lastLogin', Date.now());
+            } else {
+                const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                if(Date.now() - lastLogin > oneWeek) {
+                    showPopup('welcomeBackPopup');
+                }
+            }
+        }
+
+        // Popup Handling
+        function showPopup(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Toggle Settings
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('active');
+        }
+
+        // Start Game
+        initGame(4);
+    </script>
+</body>
+</html>
