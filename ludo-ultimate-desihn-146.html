@@ -1,0 +1,146 @@
+Ultimate Ludo Game: Design Documenultimate design
+1. Game Overview
+This document outlines the design for an advanced, web-based Ultimate Ludo Game. The game will be developed as a single HTML file using only HTML5, CSS3, and JavaScript, with no external libraries. It will support 2 to 6 players and incorporate a rich set of features including detailed player profiles, in-game currency, extensive settings, a support system, various notifications, and optional AI opponents. The goal is to create a "next-level" Ludo experience based on the provided references.
+2. Core Game Logic
+2.1. Player Setup
+Number of Players: 2, 3, 4, 5, or 6 players.
+Player Colors: Red, Blue, Green, Yellow, Pink, Black.
+Tokens: Each player has 4 tokens.
+Starting Position: All tokens start at their respective home bases (position: -1).
+2.2. Token Movement
+Leaving Home: A player must roll a 6 on the dice to move a token from their home base onto the starting tile.
+Board Path: Tokens move along a predefined, shared path on the game board in a clockwise direction.
+Home Path: Each color has a unique home path leading to the central home area. Tokens enter their home path after completing a full circuit of the main board path.
+Movement Animation: All token movements will be animated smoothly.
+2.3. Capturing Tokens
+If a player's token lands on a tile occupied by an opponent's token (and the tile is not a safe zone), the opponent's token is captured and sent back to its home base.
+2.4. Safe Zones
+Designated Tiles: Certain tiles on the board are designated as safe zones. Tokens on safe zones cannot be captured.
+Specific Safe Zones:
+Each player's starting tile (the first tile after leaving home).
+Tiles marked with a star (as per common Ludo rules, typically 8 safe star tiles on the main path).
+The prompt also mentions "every home tile no 7" as a safe zone. This needs clarification, but likely refers to the 7th tile in each player's colored home path or a specific tile on the main path.
+"make a arrow on every number 4 one user go to four token move automatically into tile 5": This implies a special rule for tiles numbered '4', possibly advancing a token automatically to tile '5'. This needs to be integrated into the path logic.
+2.5. Winning Condition
+Objective: The first player to move all four of their tokens into their respective home areas (reaching the final tile of their home path) wins the game.
+Exact Dice Count: Tokens must enter the home area and reach the final tile using an exact dice roll. If the roll is higher than the required number of steps, the token cannot move.
+Victory Notification: A clear victory notification will be displayed to the winning player.
+3. Dice Mechanics
+3D CSS Dice Cube: A visually appealing 3D dice cube will be implemented using CSS3. It will display faces numbered 1 to 6.
+Realistic Animation: The dice roll will feature a realistic bouncing and tumbling animation before settling on a random number.
+Dice Rotation: The 3D dice will rotate to clearly show the rolled number on its top face.
+Interaction: Players will click the dice (or a "Roll Dice" button) to initiate a roll.
+4. Game Board Design
+Layout: A 520x520 pixel canvas grid (or HTML elements styled to form a grid) will be used for the game board.
+Path Coordinates: The board will have clearly defined coordinates or a logical system for token movement along the main path and individual home paths.
+Visual Cues: Safe zones will be visually distinct (e.g., shaded differently, marked with a star).
+Home Entry: Each player's home entry path will be clearly marked and lead towards the central home area.
+Multiple Tokens per Cell: The game must support rendering multiple tokens on the same tile (e.g., stacked slightly offset, or side-by-side if space allows).
+5. User Interface (UI) / User Experience (UX)
+5.1. Home Screen / Main Menu
+Player Profile Display (Top Left):
+Player Picture (avatar)
+Player Level & Progress Bar (e.g., 937/1060, Level 13)
+Player ID
+Country (flag or text)
+Date of Birth (DOB)
+Total Games Played
+Overall Win Rate (%)
+Current League Status
+Achievements / Badges
+Gifts Received
+Social Interaction Links/Status
+Chat Room Access Button
+Close icon (X) for profile pop-up/view.
+Currency Display (Top Area):
+Coins (e.g., 22000)
+Diamonds (e.g., 1000)
+Game Table Selection (Center Area):
+2 & 4 Players Table
+3 & 6 Players Table
+Team Table
+Private & Local Table
+Jungle Table (This might imply a themed board or special rules)
+Bottom Navigation Bar: Buttons for:
+Events
+Battle (Quick Match / Start Game)
+Chat
+Social (Friends, etc.)
+Daily Tasks & Rewards Section: Information on:
+Watching an ad for 500 coins.
+Gold Chest (opens every hour).
+Level Rewards.
+5.2. In-Game UI
+Turn Indicator: Clearly display whose turn it is (e.g., "Turn: 🔴 Red", "Yellow's Turn").
+Status Updates: Display messages for game events (e.g., "Red rolled a 6", "Blue captured Green's token", "Yellow's token entered home").
+Audio/Visual Feedback: Sounds and/or animations for:
+Turn beginning.
+Token movement.
+Token capture.
+Token entering home.
+Dice roll.
+Winning the game.
+Token Highlighting: Selectable/movable tokens should be highlighted after a dice roll to indicate valid moves.
+Control Buttons: "Roll Dice" and "Reset Game" buttons.
+5.3. Settings Panel (Top Right Icon)
+Accessible via a settings icon (e.g., gear).
+Sound Toggle: On/Off for game sound effects.
+Music Toggle: On/Off for background music.
+Language Settings: Dropdown or selection for English, Urdu, Hindi, Roman Urdu, Arabic.
+Privacy Settings (with toggle switches):
+Do Not Disturb: Hide game invitations, room sharing notifications, friends online notifications.
+Do Not Spectate: Prevent friends from spectating your games.
+Do Not Follow: Prevent friends from following you into chatrooms, and you cannot follow them.
+Hide Nationality: Make nationality visible only to yourself.
+Hide Birthday: Others cannot see your birthday, but you can still receive AI Ludo birthday gifts.
+Block Friend Requests: Block incoming friend requests for 7 days.
+5.4. Support System
+Accessible via a "Support" button.
+Self-Service Options: Buttons for:
+Retrieve Account
+Payment Issue
+Violation Appeal
+App Suggestion
+Hot Questions (FAQ):
+A list of frequently asked questions (e.g., "Why did I not get the legend star?").
+Search functionality for FAQs.
+"Helpful / Not Helpful" feedback buttons for each FAQ answer.
+Navigation: Close (X) button and a Back button to return to the previous support page or game.
+Screenshot Prompt: If a problem isn't resolved, prompt the user to provide a screenshot to customer service.
+5.5. Notifications & Pop-ups
+Initial Welcome Pop-up: "Welcome to AI Ludo!" for new players.
+Welcome Back Pop-up: If a player hasn't opened the game in a week:
+Message: "Welcome back to Ludo, it's been a while since you came last time, we missed you a lot. Here are your welcome bonus: 5000 coins."
+"Collect" button for the coins.
+Inactivity Pop-up (after 15 minutes of inactivity on home page):
+Message: "Feeling bored? Try something fun!"
+Buttons: "Play a Game (Classic 500)", "Chatroom".
+Option: "Don't remind me again."
+Victory Notification: When a player wins.
+6. Player Profile & Economy
+6.1. Profile Creation & Initial Rewards
+Players create a profile upon first joining.
+New players receive 5000 coins and 100 diamonds.
+6.2. Level System
+Levels: 100 levels for players to progress through.
+Level Up Mechanics: Random rules for level upgrades, examples:
+Killing an opponent's token boosts level progress.
+Winning a game boosts level progress.
+Level progress displayed on the profile (e.g., 937/1060 XP to next level).
+7. Optional AI (Stretch Goal)
+Implement a basic AI to control any missing human players in a game.
+AI should be capable of making valid moves, including moving tokens out of home, moving along the path, and attempting to capture opponent tokens.
+8. Technical Requirements
+Single HTML File: All HTML, CSS, and JavaScript code must be contained within a single .html file.
+Technologies: HTML5, CSS3, and vanilla JavaScript (no external libraries or frameworks like jQuery, React, Vue, etc.).
+Client-Side Logic: All game logic (movement, capturing, safe zones, victory conditions, turns) must be handled on the client side.
+Responsiveness: The game interface should be responsive and adapt to different screen sizes, ensuring playability on both desktop and mobile devices (though primary focus might be desktop given the complexity).
+Maintainability: Code should be well-structured, commented, and maintainable.
+9. Game Assets (Conceptual)
+Board Texture/Design: Visually appealing board background.
+Token Sprites/Designs: Distinct designs for each color's tokens.
+Dice Faces: Clear images or CSS designs for dice faces 1-6.
+UI Icons: Icons for settings, navigation, player actions, etc.
+Sound Effects: For dice rolls, token movements, captures, wins, UI interactions.
+Background Music: Optional, toggleable background music.
+This design document will serve as the foundation for the development of the Ultimate Ludo Game. Further details and refinements may be added during the implementation phase.
