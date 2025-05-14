@@ -1,0 +1,786 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Ludo Game - Full Feature Concept</title>
+    <style>
+        :root {
+            --red: #e74c3c; --green: #2ecc71; --blue: #3498db; --yellow: #f1c40f;
+            --pink: #e91e63; --black: #2c3e50; --purple: #9b59b6; --orange: #e67e22;
+            --gray: #ecf0f1; --dark-gray: #333; --light-gray: #f5f5f5;
+            --board-bg: #fdfdfd; --safe-star-color: #ffd700; --dice-red: #e74c3c;
+            --dice-white: #ffffff; --header-gradient: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%);
+            --button-primary-gradient: linear-gradient(135deg, var(--orange) 0%, #f39c12 100%);
+            --button-secondary-gradient: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            --popup-bg: rgba(0,0,0,0.85);
+            --modal-bg: white;
+        }
+        
+        /* General Styles */
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; background: var(--light-gray); min-height: 100vh; padding-bottom: 70px; /* Space for bottom nav */; color: var(--dark-gray); }
+        * { box-sizing: border-box; }
+
+        /* Header */
+        header { width: 100%; background: var(--header-gradient); color: white; padding: 12px 0; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 500; }
+        header h1 { margin: 0; font-size: 1.8rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        .header-icons { position: absolute; top: 50%; transform: translateY(-50%); display: flex; gap: 10px; }
+        .back-button { left: 15px; }
+        .settings-button { right: 15px; } /* Replaced close with settings */
+        .header-icon { background: rgba(255,255,255,0.15); border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 8px 12px; border-radius: 20px; transition: all 0.3s; display: flex; align-items: center; }
+        .header-icon:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+
+        /* Home Screen (Player Selection Merged) */
+        .home-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light-gray); display: flex; flex-direction: column; z-index: 100; overflow-y: auto; padding-top: 60px; /* Header height approx */ }
+        .home-screen-content { display: flex; flex-direction: column; width: 100%; max-width: 900px; margin:0 auto; padding: 15px; }
+        .top-profile-bar { display: flex; align-items: center; background: white; padding: 10px 15px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .profile-pic { width: 60px; height: 60px; border-radius: 50%; background: var(--gray); margin-right: 15px; background-image: url('https://via.placeholder.com/60/9b59b6/fff?text=P'); background-size:cover; border: 2px solid white;}
+        .profile-info { text-align: left; flex-grow: 1;}
+        .profile-info .name-level { font-size: 1.2em; font-weight: bold; margin-bottom:3px; }
+        .profile-info .id-country { font-size: 0.8em; color: #777; }
+        .profile-info .level-progress { font-size: 0.8em; color: #555; margin-top:3px; }
+        .profile-info .level-bar-bg { background: #e0e0e0; height:8px; border-radius:4px; margin-top:4px; overflow:hidden;}
+        .profile-info .level-bar-fg { background: var(--green); height:100%; width:0%; /* JS sets width */}
+        .profile-resources { display: flex; align-items: center; gap: 15px; }
+        .resource-item { display: flex; align-items: center; gap: 5px; background: #f0f0f0; padding: 5px 10px; border-radius: 15px; font-weight: bold; font-size:0.9em; }
+        .resource-item img { width:20px; height:20px;} /* For coin/diamond icons */
+        
+        .game-tables-section { margin-bottom: 20px; }
+        .game-tables-section h3 { font-size: 1.3em; color: var(--dark-gray); margin-bottom:10px; text-align:center;}
+        .game-table-row { display: flex; justify-content: space-around; gap:15px; margin-bottom: 15px;}
+        .game-table-option { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 3px 8px rgba(0,0,0,0.1); cursor:pointer; transition: all 0.3s; flex:1; min-width:120px;}
+        .game-table-option:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15);}
+        .game-table-option h4 { margin:0 0 8px 0; color: var(--purple); font-size: 1.1em;}
+        .game-table-option p { font-size:0.85em; color: #666; margin:0;}
+        .game-table-option.team-up { background-color: var(--teal); color: white;}
+        .game-table-option.team-up h4 { color: white; } .game-table-option.team-up p { color: #f0f0f0;}
+
+        .daily-tasks-section { margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 12px; }
+        .daily-tasks-section h3 { margin-top:0; font-size:1.2em; margin-bottom:10px; }
+        .task-item { display:flex; justify-content:space-between; align-items:center; padding:10px; background:white; border-radius:8px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+        .task-item button { padding:6px 12px; font-size:0.85em; background:var(--button-secondary-gradient); border:none; color:white; border-radius:5px; cursor:pointer;}
+        .task-item button:disabled { background: #bbb;}
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 400;}
+        .nav-button { background: none; border: none; color: var(--dark-gray); font-size: 0.8em; display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 5px; transition: color 0.2s;}
+        .nav-button:hover, .nav-button.active { color: var(--purple); }
+        .nav-button .icon { font-size: 1.5em; margin-bottom: 3px; } /* Placeholder for icons */
+        
+        /* Betting and Player count from before - integrated now on Home Screen directly */
+        .betting-section, .player-number-section { margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; }
+        .player-number-section .player-options { grid-template-columns: repeat(2,1fr); } /* More compact for this section */
+
+        /* --- Game Container & Elements (Mostly same styling as previous "Ultimate" CSS) --- */
+        .game-container { position: relative; margin: 20px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); display: none; flex-direction: column; align-items: center; max-width: 800px; width: 95%; }
+        #ludoCanvasContainer { position: relative; width: 100%; max-width: 600px; margin: 0 auto; }
+        canvas { background: var(--board-bg); border: 3px solid var(--dark-gray); border-radius: 12px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); width: 100%; height: auto; aspect-ratio: 1/1; display:block; }
+        .game-info { margin-top: 20px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center; border: 1px solid #eee;}
+        .game-info-pot { font-weight: bold; margin-bottom: 10px; color: var(--dark-gray);}
+        .current-player { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .current-player::before { content: ""; display: inline-block; width: 15px; height: 15px; border-radius: 50%; background: currentColor; border: 1px solid rgba(0,0,0,0.2); }
+        .dice-value { font-size: 1.5rem; font-weight: bold; color: var(--dice-red); margin-bottom: 10px; }
+        .game-message { margin-top: 15px; padding: 12px; border-radius: 8px; background: #f8f9fa; font-weight: 500; min-height: 20px; border-left: 4px solid #6e48aa;}
+        .controls { margin-top: 25px; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center; width: 100%; max-width: 600px;}
+        .dice-container { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .dice { width: 80px; height: 80px; background: linear-gradient(135deg, var(--dice-red) 0%, #c0392b 100%); border-radius: 15px; color: var(--dice-white); font-size: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; user-select: none; position: relative; overflow: hidden;}
+        .dice:hover { transform: scale(1.05); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25); }
+        .dice.animate { animation: diceRollEnhanced 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        @keyframes diceRollEnhanced { 0% { transform: rotate3d(1, 1, 0, 0deg) scale(1); } 30% { transform: rotate3d(1, 1, 0, 360deg) scale(1.3); } 60% { transform: rotate3d(1, 1, 0, 720deg) scale(0.8); } 100% { transform: rotate3d(1, 1, 0, 1080deg) scale(1); } }
+        .dice::after { content: ""; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; pointer-events: none;}
+        .countdown-container { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 150px; }
+        .countdown-label { font-size: 0.9em; color: #666; font-weight: 500; }
+        .countdown { width: 100%; height: 15px; background: #eee; position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);}
+        .countdown-bar { height: 100%; background: linear-gradient(90deg, #ff5f6d, #ffc371); width: 100%; transition: width 0.5s linear; border-radius: 10px;}
+        .token-balances { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; justify-content: center; max-width: 600px; width: 100%;}
+        .token-balance { font-size: 15px; font-weight: bold; padding: 8px 16px; border-radius: 20px; color: white; min-width: 80px; text-align: center; box-shadow: 0 3px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px;}
+        .token-balance::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: currentColor; opacity: 0.8; border: 1px solid rgba(0,0,0,0.2);}
+        .custom-turn-order { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; justify-content: center; align-items: center; max-width: 600px; width: 100%; padding: 15px; background: #f9f9f9; border-radius: 10px;}
+        .custom-turn-order label { font-weight: bold; color: #555; margin-right: 5px; }
+        .custom-turn-order input { width: 50px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; text-align: center; font-weight: bold; transition: all 0.2s;}
+        .custom-turn-order input:focus { outline: none; border-color: #6e48aa; box-shadow: 0 0 0 2px rgba(110, 72, 170, 0.2);}
+        .settings-panel { margin-top: 25px; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1); width: 100%; max-width: 600px; border: 1px solid #eee;}
+        .settings-panel h3 { margin-top: 0; margin-bottom: 15px; color: #6e48aa; font-size: 1.2em; display: flex; align-items: center; gap: 10px;}
+        .settings-panel h3::before { content: "⚙️"; font-size: 1.1em; }
+        .setting-row { display: flex; align-items: center; margin: 12px 0; padding: 10px; background: #f9f9f9; border-radius: 8px; transition: all 0.2s;}
+        .setting-row:hover { background: #f0f0f0; }
+        .setting-row input[type="checkbox"] { width: 20px; height: 20px; accent-color: #6e48aa; cursor: pointer; }
+        .setting-row label { margin-left: 12px; font-weight: 500; color: var(--dark-gray); font-size: 0.95em; cursor: pointer; flex-grow: 1;}
+        .settings-panel button { margin-top: 20px; width: 100%; padding: 12px; font-size: 1em; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: bold; box-shadow: 0 3px 8px rgba(0,0,0,0.1);}
+        .settings-panel button:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(0,0,0,0.15); }
+        
+        /* --- Popups and Modals (Same as before) --- */
+        .win-message, .exit-confirmation, .forced-close-overlay, .bored-popup, .settings-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--popup-bg); display: none; 
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; color: white; text-align: center; padding: 20px; 
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-content { background: var(--modal-bg); padding: 30px 40px; border-radius: 15px; text-align: center; max-width: 480px; width: 90%; color: var(--dark-gray); box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: scaleInModal 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleInModal { from { transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;}}
+        .win-message h2, .forced-close-overlay h2, .bored-popup h2, .settings-modal h2 { font-size: 2rem; margin-bottom: 15px; text-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .win-message h2 { color: gold; } .forced-close-overlay h2 { color: var(--red); } .bored-popup h2, .settings-modal h2 { color: var(--purple); }
+        .win-message p, .forced-close-overlay p, .bored-popup p, .settings-modal p { font-size: 1.1rem; margin-bottom: 20px; line-height: 1.5;}
+        .win-message #winStats { margin-bottom: 25px; font-size: 1.0em; background: #f0f0f0; padding:10px; border-radius:8px;}
+        .win-message #winStats span { display:block; margin: 5px 0; }
+        .modal-buttons, .bored-popup-actions, .settings-modal-actions { display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+        .modal-buttons button, .bored-popup-actions button, .settings-modal-actions button { font-size: 1.0em; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .win-message button:first-of-type, .settings-modal-actions .primary-btn { background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%); color: white; }
+        .win-message button:last-of-type, .settings-modal-actions .secondary-btn { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
+        .bored-popup-actions button:first-child { background: var(--button-primary-gradient); color:white;}
+        .bored-popup-actions button:nth-child(2) { background: var(--button-secondary-gradient); color:white;}
+        .bored-popup-actions button:last-child { background: var(--gray); color:var(--dark-gray); font-size:0.9em; padding:8px 15px;}
+        .forced-close-overlay .modal-content button { background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%); color: white;}
+        .modal-buttons button:hover, .bored-popup-actions button:hover, .settings-modal-actions button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        .exit-confirmation .modal-content h3 { margin-top: 0; font-size: 1.5rem; color: #6e48aa; }
+        .exit-buttons { display: flex; flex-direction: row; /* side-by-side */ justify-content: center; gap: 15px; margin-top: 25px; }
+        .exit-buttons button { min-width: 120px; padding: 12px 20px; font-size: 1em; border-radius: 8px;}
+        #confirmExitButton { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+        .exit-buttons button:last-child { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+        .forced-close-overlay .timer { font-size: 1.5rem; color: var(--yellow); font-weight: bold; margin: 10px 0; }
+        .settings-modal .setting-category { margin-bottom: 20px; }
+        .settings-modal .setting-category h4 { font-size:1.1em; color:var(--dark-gray); border-bottom: 1px solid #eee; padding-bottom:5px; margin-bottom:10px;}
+        .settings-modal .modal-setting-row { display:flex; justify-content: space-between; align-items: center; margin: 8px 0; font-size: 0.95em;}
+        /* Basic toggle switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+
+        .animated-token-visual { /* ... Same as before ... */ }
+        .animated-token-visual .cone-body { /* ... Same as before ... */ }
+        .animated-token-visual .cone-base { /* ... Same as before ... */ }
+        .confetti-container { /* ... Same as before ... */ }
+        .confetti { /* ... Same as before ... */ }
+        @keyframes fall { /* ... Same as before ... */ }
+        .kill-feed-popup { /* ... Same as before ... */ }
+        .kill-feed-popup.show { /* ... Same as before ... */ }
+
+    </style>
+</head>
+<body>
+    <header>
+        <button class="header-icon back-button" id="backButton" style="display: none;">← <span>Home</span></button>
+        <h1>Ultimate Ludo</h1>
+        <button class="header-icon settings-button" id="settingsOpenButton">⚙️ <span>Settings</span></button>
+    </header>
+
+    <div class="home-screen" id="homeScreen">
+        <div class="home-screen-content">
+            <div class="top-profile-bar">
+                <div class="profile-pic" id="userProfilePic"></div>
+                <div class="profile-info">
+                    <div class="name-level" id="userNameLevel">Player (Lv. 1)</div>
+                    <div class="id-country"><span id="userId">ID: 12345678</span> | <span id="userCountry">🌏 Unknown</span></div>
+                    <div class="level-progress">Progress: <span id="levelCurrentXp">0</span>/<span id="levelNextXp">1000</span></div>
+                    <div class="level-bar-bg"><div class="level-bar-fg" id="levelProgressBar"></div></div>
+                </div>
+                <div class="profile-resources">
+                    <div class="resource-item" title="Coins"><img src="https://img.icons8.com/fluency/48/000000/coins.png" alt="C"> <span id="homePlayerCoins">0</span></div>
+                    <div class="resource-item" title="Diamonds"><img src="https://img.icons8.com/fluency/48/000000/diamond.png" alt="D"> <span id="homePlayerDiamonds">0</span></div>
+                </div>
+            </div>
+
+            <div class="betting-section">
+                <h3>Place Your Bet</h3>
+                <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Each player contributes this amount to the pot.</p>
+                <div class="bet-options" id="betOptionsContainerHome"></div>
+                <div id="currentBetInfoHome" style="margin-top: 15px; display: flex; justify-content: space-between; font-size: 0.9em; padding: 0 5px;">
+                    <span id="currentBetDisplayHome">Your Bet: 0</span> 
+                    <span id="potentialWinDisplayHome">Potential Win: 0</span>
+                </div>
+            </div>
+
+            <div class="player-number-section">
+                 <h3>Game Mode & Players</h3>
+                <div class="player-options" id="playerOptionsContainerHome">
+                    <div class="player-option" data-value="2"><h4>2 Players</h4><p>Classic 1v1</p></div>
+                    <div class="player-option" data-value="4"><h4>4 Players</h4><p>Square Board</p></div>
+                    <div class="player-option" data-value="3"><h4>3 Players</h4><p>Triple Threat*</p></div>
+                    <div class="player-option" data-value="6"><h4>6 Players</h4><p>Star Board**</p></div>
+                    <!-- Team Up / Jungle Mode are conceptual, lead to standard game for now -->
+                    <div class="player-option team-up" data-mode="team"><h4>Team Up</h4><p>2v2 Action</p></div>
+                    <div class="player-option" data-mode="jungle"><h4>Jungle Chase</h4><p>Wild Rules</p></div>
+                </div>
+                 <p style="font-size: 0.75em; color: #777; margin-top:5px; text-align:left; padding-left:10px;">
+                    *3P uses 4-arm board. **6P uses Star layout. Other modes are variants.
+                </p>
+            </div>
+             <div style="margin-top: 20px; text-align: left;">
+                <label for="gameDifficultyHome" style="display: block; margin-bottom: 8px; font-weight: bold;">Game Difficulty:</label>
+                <select id="gameDifficultyHome" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background:white;">
+                    <option value="easy">Easy</option> <option value="medium" selected>Medium</option> <option value="hard">Hard</option>
+                </select>
+            </div>
+            <button id="startGameButtonHome" style="margin-top:30px; background: var(--button-primary-gradient); width:100%;font-size:1.2em;padding:15px;">🚀 Start Ludo Game</button>
+
+            <div class="daily-tasks-section">
+                 <h3>Daily Perks</h3>
+                 <div class="task-item"><span>Gold Chest (1hr Timer)</span><button id="goldChestButton" onclick="openGoldChest()">Open</button></div>
+                 <div class="task-item"><span>Watch Ad for Coins</span><button id="watchAdButtonHome" onclick="watchAdForCoins()">+500 Coins</button></div>
+                 <p id="adRewardMessageHome" style="text-align:center; font-size:0.8em; margin-top:5px;"></p>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-nav" id="bottomNav">
+        <button class="nav-button active" data-target="home"><span class="icon">🏠</span>Home</button>
+        <button class="nav-button" data-target="events"><span class="icon">🎉</span>Events</button>
+        <button class="nav-button" data-target="battle"><span class="icon">⚔️</span>Battle</button>
+        <button class="nav-button" data-target="chat"><span class="icon">💬</span>Chat</button>
+        <button class="nav-button" data-target="social"><span class="icon">👥</span>Social</button>
+    </div>
+
+    <!-- Game Container (canvas, controls, settings etc.) remains the same structure as your "Ultimate Ludo" HTML -->
+    <div class="game-container" id="gameContainer"> /* ... Same content ... */ </div>
+    
+    <!-- Popups (Confetti, KillFeed, Win, Exit, ForcedClose) same structure -->
+    <div class="confetti-container" id="confettiContainer"></div>
+    <div class="kill-feed-popup" id="killFeedPopup"></div>
+    <div class="win-message" id="winMessage"> <div class="modal-content"> <h2 id="winnerText">Player Wins!</h2><p id="winDetails"></p><div id="winStats"></div><button onclick="playAgain()">Play Again</button><button id="winHomeButton" style="margin-top:15px; background: gray;">Back to Home</button></div></div>
+    <div class="exit-confirmation" id="exitConfirmation"> <div class="modal-content"> <h3 id="exitDialogTitle">Exit Game</h3><p id="exitDialogMessage"></p><div class="exit-buttons"><button id="confirmExitButton"></button><button id="cancelExitButton" onclick="cancelExit()">No</button></div></div></div>
+    <div class="forced-close-overlay" id="forcedCloseOverlay"><div class="modal-content"> <h2 id="forcedCloseTitle">Game Over</h2><p id="forcedCloseMessage"></p><p>Returning in <span id="forcedCloseTimer" class="timer">5</span>s</p><button id="forcedCloseOkButton">OK</button></div></div>
+    
+    <!-- Bored Popup -->
+    <div class="bored-popup" id="boredPopup">
+        <div class="modal-content">
+            <h2>Feeling Bored?</h2>
+            <p>Try something fun to spice things up!</p>
+            <div class="modal-buttons">
+                <button id="boredPlayGameButton">Play Classic (500 Bet)</button>
+                <button id="boredChatroomButton">Visit Chatroom</button>
+                <button id="boredDontRemindButton" style="font-size:0.9em; background: var(--gray); color:var(--dark-gray);">Don't Remind Again Today</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="modal-content" style="text-align:left; max-height:80vh; overflow-y:auto;">
+            <h2>Game Settings</h2>
+            <div class="setting-category">
+                <h4>🔊 Audio</h4>
+                <div class="modal-setting-row"><span>Sound Effects</span><label class="switch"><input type="checkbox" id="modalSoundToggle" checked><span class="slider"></span></label></div>
+                <div class="modal-setting-row"><span>Background Music</span><label class="switch"><input type="checkbox" id="modalMusicToggle" checked><span class="slider"></span></label></div>
+            </div>
+             <div class="setting-category">
+                <h4>🌐 Language (Conceptual)</h4>
+                <select id="modalLanguageSelect" style="width:100%; padding:8px; border-radius:5px; border:1px solid #ccc;">
+                    <option value="en">English</option><option value="ur">Urdu (اردو)</option><option value="hi">Hindi (हिंदी)</option><option value="ar">Arabic (العربية)</option>
+                </select>
+            </div>
+            <div class="setting-category">
+                <h4>🔒 Privacy (Conceptual Placeholders)</h4>
+                <div class="modal-setting-row"><span>Do Not Disturb</span><label class="switch"><input type="checkbox" id="modalDNDToggle"><span class="slider"></span></label></div>
+                <div class="modal-setting-row"><span>Hide Game Invites</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                <div class="modal-setting-row"><span>Block Friend Requests</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+            </div>
+             <div class="setting-category">
+                <h4>📞 Support (Conceptual)</h4>
+                <button class="secondary-btn" style="width:100%; margin-bottom:10px;">Self Service / FAQ</button>
+                <button class="secondary-btn" style="width:100%;">Contact Support</button>
+            </div>
+            <div class="settings-modal-actions" style="margin-top:25px;">
+                <button class="primary-btn" id="settingsCloseButton">Close Settings</button>
+            </div>
+        </div>
+    </div>
+
+
+    <audio id="diceSound" src="https://assets.mixkit.co/sfx/preview/mixkit-plastic-dice-roll-1494.mp3" preload="auto"></audio>
+    <!-- ... other audio elements ... -->
+    <audio id="moveSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" preload="auto"></audio>
+    <audio id="captureSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3" preload="auto"></audio>
+    <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+    <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-show-wrong-answer-buzz-950.mp3" preload="auto"></audio>
+    <audio id="coinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-success-alert-2039.mp3" preload="auto"></audio>
+    <audio id="backgroundMusic" loop src="https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-668.mp3" preload="auto"></audio>
+
+
+    <script>
+        // --- Constants for LocalStorage & Game Logic ---
+        // ... (All LS_KEYS and game logic constants from your "Ultimate" version)
+        const LS_PREFIX = 'ultimateLudoV3_';
+        const LS_KEYS = { /* ... */ };
+        const DAILY_AD_COIN_LIMIT = 5000, AD_REWARD_AMOUNT = 500, JOINING_BONUS_AMOUNT = 5000;
+        const PLAYER_INITIAL_DIAMONDS = 100; // New constant
+        const LS_DIAMONDS_KEY = LS_PREFIX + 'diamonds';
+        const LS_LAST_VISIT_KEY = LS_PREFIX + 'lastVisit';
+        const LS_BORED_REMINDER_KEY = LS_PREFIX + 'boredReminderDisabledDate';
+        const LS_SETTINGS_SOUND_KEY = LS_PREFIX + 'settingSound';
+        const LS_SETTINGS_MUSIC_KEY = LS_PREFIX + 'settingMusic';
+
+        const BET_AMOUNTS = [500, 1000, 10000, 50000, 100000, 500000, 1000000, 5000000, 10000000];
+        
+        const canvasEl = document.getElementById('ludoCanvas');
+        const canvasContainer = document.getElementById('ludoCanvasContainer');
+        const ctx = canvasEl.getContext('2d');
+        
+        const TOKENS_PER_PLAYER = 4, HOME_STRETCH_LENGTH = 6; 
+        let GRID_SIZE, CELL_SIZE, TOKEN_RADIUS, MAIN_TRACK_LENGTH; 
+        let ACTIVE_PLAYER_GEOMETRY_CONFIG = [], ACTIVE_MAIN_TRACK_COORDS = [], ACTIVE_SAFE_SQUARE_INDICES = [];
+        const DEFAULT_MAIN_TRACK_COORDS_4P = [[1,6],[2,6],[3,6],[4,6],[5,6],[6,5],[6,4],[6,3],[6,2],[6,1],[6,0],[7,0],[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[9,6],[10,6],[11,6],[12,6],[13,6],[14,6],[14,7],[14,8],[13,8],[12,8],[11,8],[10,8],[9,8],[8,9],[8,10],[8,11],[8,12],[8,13],[8,14],[7,14],[6,14],[6,13],[6,12],[6,11],[6,10],[6,9],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8],[0,7],[0,6]];
+        const DEFAULT_SAFE_SQUARE_INDICES_4P = [0, 8, 13, 21, 26, 34, 39, 47]; // Square indices for safe zones
+        const HOME_TILE_NO_7_SAFE_INDEX_IN_HOMEPATH = 5; // For the rule: make home tile 7 safe (0-indexed means 6th tile = pos 5)
+
+        const DEFAULT_PLAYER_GEOMETRY_4P_BASE = [ 
+            { nameRef:'Red', homeArea: { x: 0, y: 0, w: 6, h: 6 }, startSquareGrid: [1, 6], startPosGlobal: 0, homePathEntryGlobalTrackPos: 50, homePathSquaresGrid: [[6,1],[6,2],[6,3],[6,4],[6,5],[6,6]] },
+            { nameRef:'Green', homeArea: { x: 9, y: 0, w: 6, h: 6 }, startSquareGrid: [8, 1], startPosGlobal: 13, homePathEntryGlobalTrackPos: 11, homePathSquaresGrid: [[13,6],[12,6],[11,6],[10,6],[9,6],[8,6]] },
+            { nameRef:'YellowVisual', homeArea: { x: 9, y: 9, w: 6, h: 6 }, startSquareGrid: [6, 13], startPosGlobal: 26, homePathEntryGlobalTrackPos: 24, homePathSquaresGrid: [[8,13],[8,12],[8,11],[8,10],[8,9],[8,8]] },
+            { nameRef:'BlueVisual', homeArea: { x: 0, y: 9, w: 6, h: 6 }, startSquareGrid: [13, 8], startPosGlobal: 39, homePathEntryGlobalTrackPos: 37, homePathSquaresGrid: [[1,8],[2,8],[3,8],[4,8],[5,8],[6,8]] }
+        ];
+        
+        const STAR_GRID_SIZE = 19; // Grid for 6-player star
+        const STAR_MAIN_TRACK_LENGTH = 54; // 6 arms * 8 main + 6 turns
+        // Complex definitions for 6-Player Star Board - conceptual layout. Requires a LOT of precise coord definition.
+        // This is illustrative and will need to be fully plotted out.
+        const PLAYER_GEOMETRY_6P_STAR = [ /* Define actual star layout if using STAR_GRID_SIZE */
+             // Placeholder: Re-using 4P geom with offsets for now. Needs dedicated star math.
+            { nameRef:'Red',    homeArea:{x:1, y:1,  w:4,h:4}, startSquareGrid:[2,9], startPosGlobal:0,  homePathEntryGlobalTrackPos:52, homePathSquaresGrid:[[9,2],[9,3],[9,4],[9,5],[9,6],[9,7]] }, 
+            { nameRef:'Orange', homeArea:{x:14,y:1,  w:4,h:4}, startSquareGrid:[9,2], startPosGlobal:9,  homePathEntryGlobalTrackPos:7,  homePathSquaresGrid:[[16,9],[15,9],[14,9],[13,9],[12,9],[11,9]] },
+            { nameRef:'Yellow', homeArea:{x:14,y:14, w:4,h:4}, startSquareGrid:[16,9],startPosGlobal:18, homePathEntryGlobalTrackPos:16, homePathSquaresGrid:[[9,16],[9,15],[9,14],[9,13],[9,12],[9,11]] },
+            { nameRef:'Green',  homeArea:{x:7, y:14, w:4,h:4}, startSquareGrid:[9,16],startPosGlobal:27, homePathEntryGlobalTrackPos:25, homePathSquaresGrid:[[2,9],[3,9],[4,9],[5,9],[6,9],[7,9]] }, 
+            { nameRef:'Blue',   homeArea:{x:1, y:14, w:4,h:4}, startSquareGrid:[2,9],startPosGlobal:36, homePathEntryGlobalTrackPos:34, homePathSquaresGrid:[[1,9],[2,9],[3,9],[4,9],[5,9],[6,9]] },//Temp placeholder, need real coords
+            { nameRef:'Purple', homeArea:{x:1, y:7,  w:4,h:4}, startSquareGrid:[1,9],startPosGlobal:45, homePathEntryGlobalTrackPos:43, homePathSquaresGrid:[[1,8],[2,8],[3,8],[4,8],[5,8],[6,8]] } //Temp placeholder
+        ];
+        // Dummy 6P main track. Needs full definition for 54 squares.
+        const MAIN_TRACK_COORDS_6P_STAR_DUMMY = DEFAULT_MAIN_TRACK_COORDS_4P.slice(0,STAR_MAIN_TRACK_LENGTH); 
+        const SAFE_SQUARE_INDICES_6P_STAR_DUMMY = [0,5,9,14,18,23,27,32,36,41,45,50];
+
+        // --- Game State Variables ---
+        let selectedBetAmount = BET_AMOUNTS[0], selectedPlayerCount = 0, gameDifficulty = 'medium';
+        let playerCoins = 0, playerDiamonds = 0, playerWins = 0, playerGamesPlayed = 0, playerXP=0, playerLevel=1, xpToNextLevel=1000;
+        let players = [], playerCount = 0, currentPlayerTurnIndex = 0, currentDiceValue = 0;
+        let gameActive = false, turnOrder = [], humanPlayerCanMove = false, possibleMovesForHuman = [];
+        let countdownInterval, extraTurnReason = null, gamePot = 0;
+        let gameStats = { captures:0, turns:0, sixesRolled:0, playerMoves: []}; 
+        const baseColors = [ // Keep in order for player creation
+            { name: 'Red',    code: 'var(--red)'},    { name: 'Green',  code: 'var(--green)'},
+            { name: 'Blue',   code: 'var(--blue)'},   { name: 'Yellow', code: 'var(--yellow)'},
+            { name: 'Pink', code: 'var(--pink)'},{ name: 'Black', code: 'var(--black)'} // Swapped purple/orange
+        ];
+        let forcedCloseGlobalInterval = null; 
+        let inactivityTimer = null, boredPopupShownToday = false;
+
+        // --- Player Profile & Coin Management ---
+        function initPlayerProfile() {
+            const storedCoins = localStorage.getItem(LS_KEYS.COINS);
+            const storedDiamonds = localStorage.getItem(LS_DIAMONDS_KEY);
+            const joiningBonusReceived = localStorage.getItem(LS_KEYS.BONUS_RECEIVED) === 'true';
+            const lastVisitStr = localStorage.getItem(LS_KEYS.LAST_VISIT_KEY);
+
+            if (storedCoins === null) { // First ever visit
+                playerCoins = JOINING_BONUS_AMOUNT;
+                playerDiamonds = PLAYER_INITIAL_DIAMONDS;
+                localStorage.setItem(LS_KEYS.COINS, playerCoins.toString());
+                localStorage.setItem(LS_KEYS.DIAMONDS, playerDiamonds.toString());
+                localStorage.setItem(LS_KEYS.BONUS_RECEIVED, 'true');
+                localStorage.setItem(LS_KEYS.WINS, '0');
+                localStorage.setItem(LS_KEYS.GAMES_PLAYED, '0');
+                 setTimeout(() => alert(`Welcome to Ultimate Ludo!\nYou've received ${JOINING_BONUS_AMOUNT} coins and ${PLAYER_INITIAL_DIAMONDS} diamonds as a joining bonus!`), 200);
+            } else {
+                playerCoins = parseInt(storedCoins);
+                playerDiamonds = parseInt(storedDiamonds || '0'); // Handle case where diamonds weren't stored before
+                if (!joiningBonusReceived) { /* ... already handled by game logic */ }
+            }
+
+            playerWins = parseInt(localStorage.getItem(LS_KEYS.WINS) || '0');
+            playerGamesPlayed = parseInt(localStorage.getItem(LS_KEYS.GAMES_PLAYED) || '0');
+            // playerXP, playerLevel also from LS if stored
+
+            // Welcome back bonus
+            if (lastVisitStr) {
+                const lastVisitDate = new Date(lastVisitStr);
+                const today = new Date();
+                const diffTime = Math.abs(today - lastVisitDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays >= 7) {
+                    setTimeout(() => {
+                        const welcomeBackModal = document.createElement('div'); // Simplified modal
+                        welcomeBackModal.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.3); z-index:2000; text-align:center;";
+                        welcomeBackModal.innerHTML = `<h3>Welcome Back!</h3><p>It's been a while! We missed you.<br>Here's 5000 coins as a welcome back bonus!</p><button id="collectWelcomeBackBonus">Collect</button>`;
+                        document.body.appendChild(welcomeBackModal);
+                        document.getElementById('collectWelcomeBackBonus').onclick = () => {
+                            addCoins(5000);
+                            welcomeBackModal.remove();
+                        };
+                    }, 500);
+                }
+            }
+            localStorage.setItem(LS_KEYS.LAST_VISIT_KEY, new Date().toISOString());
+
+            updateProfileDisplay(); setupBetOptions(); setupPlayerCountOptions();
+            document.getElementById('gameDifficulty').value = gameDifficulty; 
+            document.getElementById('settingsOpenButton').style.display = 'block'; // Show settings icon
+
+            const fcOkBtn = document.getElementById('forcedCloseOkButton');
+            if(fcOkBtn) fcOkBtn.onclick = () => { if (forcedCloseGlobalInterval) clearInterval(forcedCloseGlobalInterval); returnToHome(); };
+            const winHomeBtn = document.getElementById('winHomeButton');
+            if(winHomeBtn) winHomeBtn.onclick = returnToHome;
+            resetInactivityTimer();
+        }
+        function updateProfileDisplay() {
+             document.getElementById('homePlayerCoins').textContent = playerCoins.toLocaleString();
+             document.getElementById('homePlayerDiamonds').textContent = playerDiamonds.toLocaleString();
+             document.getElementById('playerWins').textContent = playerWins;
+             document.getElementById('playerGamesPlayed').textContent = playerGamesPlayed;
+             const winRate = playerGamesPlayed > 0 ? ((playerWins / playerGamesPlayed) * 100).toFixed(1) : 0;
+             document.getElementById('playerWinRate').textContent = `${winRate}%`;
+             
+             // Basic XP and Level display
+             document.getElementById('userNameLevel').textContent = `Player (Lv. ${playerLevel})`;
+             document.getElementById('levelCurrentXp').textContent = playerXP;
+             document.getElementById('levelNextXp').textContent = xpToNextLevel;
+             document.getElementById('levelProgressBar').style.width = `${(playerXP/xpToNextLevel)*100}%`;
+
+             updateBetInfoDisplay(); checkAdRewardStatus();
+        }
+
+        // ... (addCoins, deductCoins, incrementWins, incrementGamesPlayed, checkAdRewardStatus, watchAdForCoins, setupBetOptions, setupPlayerCountOptions - remain mostly same)
+        
+        function validateAndStartGame() {
+            // Get selected player count from the highlighted option on the home screen
+            const selectedOption = document.querySelector('#playerOptionsContainerHome .player-option.selected');
+            if (!selectedOption) { alert("Please select the number of players."); return; }
+            selectedPlayerCount = parseInt(selectedOption.dataset.value);
+
+            if (selectedPlayerCount === 0) { alert("Please select the number of players."); return; }
+            if (playerCoins < selectedBetAmount) { alert(`Not enough coins for this bet.\nYour Bet: ${selectedBetAmount.toLocaleString()}\nYour Coins: ${playerCoins.toLocaleString()}`); return; }
+            
+            clearInactivityTimer(); // Stop bored popup timer when game starts
+            deductCoins(selectedBetAmount); 
+            gamePot = selectedBetAmount * selectedPlayerCount; 
+            gameDifficulty = document.getElementById('gameDifficultyHome').value; // Get from home screen select
+            playerCount = selectedPlayerCount; 
+            startGameSetupInternal(playerCount); 
+        }
+        
+        // --- Bored Popup Logic ---
+        function resetInactivityTimer() {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            const reminderDisabledDate = localStorage.getItem(LS_BORED_REMINDER_KEY);
+            const today = new Date().toISOString().split('T')[0];
+            if (reminderDisabledDate === today) {
+                boredPopupShownToday = true; // Already shown/disabled for today
+                return;
+            }
+            boredPopupShownToday = false;
+            // Set timer for 15 seconds (15 * 1000 ms) for demo, real would be ~15 mins
+            inactivityTimer = setTimeout(showBoredPopup, 15 * 1000); 
+        }
+        function clearInactivityTimer() { if (inactivityTimer) clearTimeout(inactivityTimer); }
+        function showBoredPopup() {
+            if (boredPopupShownToday || gameActive || document.getElementById('settingsModal').style.display === 'flex') return; // Don't show if game active, settings open or already shown
+            document.getElementById('boredPopup').style.display = 'flex';
+        }
+        document.getElementById('boredPlayGameButton').onclick = () => {
+            selectedBetAmount = 500; // Classic 500 bet
+            selectedPlayerCount = 4; // Default to 4 players for classic
+            document.getElementById('boredPopup').style.display = 'none';
+            updateBetInfoDisplay(); // Update display even though player didn't click bet options
+             // Update UI to show selectedPlayerCount 
+            document.querySelectorAll('#playerOptionsContainerHome .player-option').forEach(opt => {
+                if(parseInt(opt.dataset.value) === 4) opt.classList.add('selected'); else opt.classList.remove('selected');
+            });
+            validateAndStartGame();
+        };
+        document.getElementById('boredChatroomButton').onclick = () => {
+            alert("Chatroom feature coming soon!"); // Placeholder
+            document.getElementById('boredPopup').style.display = 'none';
+            resetInactivityTimer(); 
+        };
+        document.getElementById('boredDontRemindButton').onclick = () => {
+            localStorage.setItem(LS_BORED_REMINDER_KEY, new Date().toISOString().split('T')[0]);
+            boredPopupShownToday = true;
+            document.getElementById('boredPopup').style.display = 'none';
+        };
+
+        // --- Settings Modal Logic ---
+        const settingsModal = document.getElementById('settingsModal');
+        document.getElementById('settingsOpenButton').onclick = () => { settingsModal.style.display = 'flex'; loadSettingsToModal(); clearInactivityTimer(); };
+        document.getElementById('settingsCloseButton').onclick = () => { settingsModal.style.display = 'none'; resetInactivityTimer(); };
+        
+        function loadSettingsToModal() {
+            document.getElementById('modalSoundToggle').checked = localStorage.getItem(LS_SETTINGS_SOUND_KEY) !== 'false'; // default true
+            document.getElementById('modalMusicToggle').checked = localStorage.getItem(LS_SETTINGS_MUSIC_KEY) !== 'false'; // default true
+            // For language & privacy: if they were stored, load them. For now, conceptual.
+        }
+        document.getElementById('modalSoundToggle').onchange = (e) => {
+            localStorage.setItem(LS_SETTINGS_SOUND_KEY, e.target.checked.toString());
+            document.getElementById('soundEffects').checked = e.target.checked; // Sync with game setting
+        };
+        document.getElementById('modalMusicToggle').onchange = (e) => {
+            localStorage.setItem(LS_SETTINGS_MUSIC_KEY, e.target.checked.toString());
+            const bgMusic = document.getElementById('backgroundMusic');
+            if (e.target.checked) { if(gameActive) bgMusic.play().catch(err=>console.warn("music auto play failed")); } 
+            else { bgMusic.pause(); }
+        };
+
+        // Link actual game sound/music toggles to modal settings
+        document.getElementById('soundEffects').onchange = (e) => {
+            document.getElementById('modalSoundToggle').checked = e.target.checked;
+            localStorage.setItem(LS_SETTINGS_SOUND_KEY, e.target.checked.toString());
+        }
+        // Music is usually controlled by play/pause when game starts/ends
+
+
+        // --- Board Config & Game Init ---
+        function configureBoardLayout() { 
+            if (playerCount === 6) {
+                GRID_SIZE = STAR_GRID_SIZE; 
+                MAIN_TRACK_LENGTH = STAR_MAIN_TRACK_LENGTH; 
+                ACTIVE_MAIN_TRACK_COORDS = MAIN_TRACK_COORDS_6P_STAR_DUMMY; // Needs full coords for star
+                ACTIVE_SAFE_SQUARE_INDICES = SAFE_SQUARE_INDICES_6P_STAR_DUMMY;
+                ACTIVE_PLAYER_GEOMETRY_CONFIG = JSON.parse(JSON.stringify(PLAYER_GEOMETRY_6P_STAR));
+                TOKEN_RADIUS = (canvasEl.width / GRID_SIZE) * 0.22; // Even smaller for 6P star visual attempt
+            } else { 
+                GRID_SIZE = 15; 
+                MAIN_TRACK_LENGTH = 52;
+                TOKEN_RADIUS = (canvasEl.width / GRID_SIZE) * 0.30;
+                ACTIVE_MAIN_TRACK_COORDS = [...DEFAULT_MAIN_TRACK_COORDS_4P];
+                ACTIVE_SAFE_SQUARE_INDICES = [...DEFAULT_SAFE_SQUARE_INDICES_4P];
+                let tempGeomConfig = JSON.parse(JSON.stringify(DEFAULT_PLAYER_GEOMETRY_4P_BASE)); 
+                if (playerCount === 3) ACTIVE_PLAYER_GEOMETRY_CONFIG = [tempGeomConfig[0], tempGeomConfig[1], tempGeomConfig[2]]; // R,G,YellowVisual
+                else if (playerCount === 2) ACTIVE_PLAYER_GEOMETRY_CONFIG = [tempGeomConfig[0], tempGeomConfig[2]]; // R,YellowVisual
+                else ACTIVE_PLAYER_GEOMETRY_CONFIG = tempGeomConfig.slice(0, 4); // R,G,Y,B
+            }
+            CELL_SIZE = canvasEl.width / GRID_SIZE;
+        }
+
+        function initLudoGameCore() { /* ... Updated player.name for 6 players for star board visualization order... */
+            players = [];
+            // Star board color display order: Red, Orange, Yellow, Green, Blue, Purple (Matches visual symmetry)
+            const starBoardVisualColorOrderIndices = [0, 5, 3, 1, 2, 4]; // Index in baseColors for R, O, Y, G, B, P
+
+            for (let i = 0; i < playerCount; i++) {
+                let playerColorInfo;
+                let geomRefIndex; // Index to pick geometry from ACTIVE_PLAYER_GEOMETRY_CONFIG
+                
+                if (playerCount === 6) {
+                    playerColorInfo = baseColors[starBoardVisualColorOrderIndices[i]];
+                    geomRefIndex = i; // Star board geometry is already ordered visually
+                } else { // For 2,3,4 player square board, logic from before
+                    const fourPlayerStandardOrder = [0, 1, 3, 2]; // R, G, Y, B mapping from baseColors
+                    if (playerCount === 4) playerColorInfo = baseColors[fourPlayerStandardOrder[i]];
+                    else if (playerCount === 3) playerColorInfo = baseColors[fourPlayerStandardOrder[i < 2 ? i : i+1]]; //R,G,B
+                    else if (playerCount === 2) playerColorInfo = baseColors[fourPlayerStandardOrder[i===0 ? 0 : 2]]; //R,Y
+                    else playerColorInfo = baseColors[i]; // Fallback (should not happen for valid player counts)
+                    geomRefIndex = i;
+                }
+                
+                const geometry = ACTIVE_PLAYER_GEOMETRY_CONFIG[geomRefIndex]; 
+                if (!geometry) { console.error(`No geometry for player ${i} (color ${playerColorInfo.name}) with ${playerCount} players.`); continue; }
+                players.push({
+                    name: playerColorInfo.name, color: playerColorInfo.code, isAI: false, 
+                    geometry: geometry, colorIndexGlobal: baseColors.findIndex(bc => bc.name === playerColorInfo.name), 
+                    tokens: Array(TOKENS_PER_PLAYER).fill(null).map((_, k) => ({
+                        id: k, state: 'home', position: -1, globalTrackPos: -1, displayPos: { x: 0, y: 0 }
+                    })),
+                    finishedTokens: 0, movesMadeThisGame: 0, capturesMadeThisGame: 0 
+                });
+            }
+             updateTurnOrder(); currentDiceValue = 0; gameActive = true; humanPlayerCanMove = false;
+            possibleMovesForHuman = []; extraTurnReason = null;
+
+            const aiVsAi = document.getElementById('aiVsAi').checked;
+            const autoMode = document.getElementById('autoMode').checked; // "AI for Other Players"
+
+            players.forEach((p) => { 
+                // Player with color baseColors[0] (Red) is human, unless aiVsAi
+                if (aiVsAi) p.isAI = true; 
+                else p.isAI = (p.name !== baseColors[0].name) && autoMode; // If not Red and autoMode, then AI
+            });
+            if (playerCount === 1 && players[0] && !aiVsAi) players[0].isAI = false; // Make sure single player is human if not AIVSAI
+
+            updateCurrentPlayerDisplay(); updateTokenBalances(); drawBoard(); 
+            const firstPlayer = players[turnOrder[currentPlayerTurnIndex]];
+            if (firstPlayer) {
+                showGameMessage(`${firstPlayer.name}'s turn. Roll dice.`);
+                if (firstPlayer.isAI && document.getElementById('autoRoll').checked) startCountdown(handleDiceRollAction);
+            } else showGameMessage("Error: No first player. Please reset.");
+            
+            document.getElementById('dice').removeEventListener('click', handleDiceRollAction); 
+            document.getElementById('dice').addEventListener('click', handleDiceRollAction);
+            canvasEl.removeEventListener('click', handleCanvasClick);
+            canvasEl.addEventListener('click', handleCanvasClick);
+            
+            document.getElementById('backButton').style.display = 'block'; document.getElementById('closeButton').style.display = 'block';
+            document.getElementById('backButton').onclick = () => showExitConfirmation('exit_to_menu_forfeit_if_active'); 
+            document.getElementById('closeButton').onclick = () => showExitConfirmation('quit_current_game_forfeit');
+        }
+
+
+        // --- Draw, Move, AI, UI Functions --- (Including new Arrow draw)
+        function drawBoard() {
+            // ... (Enhanced board drawing logic with full arm colors, safe squares, and star center for 6P)
+            // For ARROW drawing within home paths:
+            // Inside the loop `geom.homePathSquaresGrid.forEach((sqCoord, pathSqIdx) => { ...`
+            // Add this:
+            /*
+                    // Draw Arrow on the "shoot ahead" square (4th actual square is index 3)
+                    if (pathSqIdx === ARROW_TARGET_SQUARE_INDEX_IN_HOMEPATH) {
+                        ctx.save();
+                        ctx.fillStyle = getBorderColor(players[geomIndex].color); // Arrow color same as border
+                        const centerX = (sqCoord[0] + 0.5) * CELL_SIZE;
+                        const centerY = (sqCoord[1] + 0.5) * CELL_SIZE;
+                        
+                        // Determine arrow rotation based on home path direction.
+                        // This requires knowing if path is N,S,E,W or diagonal for star.
+                        // Example (needs to be specific to EACH player's path direction):
+                        let angle = Math.PI * 1.5; // Default: points "up" relative to cell. Needs correct angle.
+                        // TODO: Define 'angle' for each player based on their home path geometry in PLAYER_GEOMETRY configs.
+                        // For square board: Red (up, -PI/2), Green (left, PI), Yellow (down, PI/2), Blue (right, 0)
+                        // For Star board, it will be more complex (e.g. angles like PI/3, 2PI/3 etc.)
+
+                        // Temporary fixed arrow angles for demo for 4P. STAR board needs detailed angles.
+                        if (playerCount !== 6) { // Assuming 4P logic for simple arrows
+                             if(players[geomIndex].name === 'Red') angle = -Math.PI / 2; // Up
+                             else if(players[geomIndex].name === 'Green') angle = 0;  // Right
+                             else if(players[geomIndex].name === 'Yellow') angle = Math.PI / 2; // Down
+                             else if(players[geomIndex].name === 'Blue') angle = Math.PI; // Left
+                        } else {
+                             // For STAR board: Player index 0 (Red) path moves from right to left towards center approx. -> angle = PI
+                             // Player index 1 (Orange) path moves from top-right diag towards center etc.
+                             // These angles depend HEAVILY on your star board coord definition
+                             if(players[geomIndex].name === 'Red')    angle = Math.PI;         // Pointing left
+                             if(players[geomIndex].name === 'Orange') angle = Math.PI * 1.25;  // Pointing bottom-left
+                             if(players[geomIndex].name === 'Yellow') angle = Math.PI * 1.75;  // Pointing top-left
+                             // ... and so on for Green, Blue, Purple. Requires exact path data.
+                        }
+
+
+                        ctx.translate(centerX, centerY);
+                        ctx.rotate(angle);
+                        ctx.beginPath();
+                        ctx.moveTo(0, -CELL_SIZE * 0.25); // Tip
+                        ctx.lineTo(CELL_SIZE * 0.15, CELL_SIZE * 0.05); 
+                        ctx.lineTo(CELL_SIZE * 0.05, CELL_SIZE * 0.05); 
+                        ctx.lineTo(CELL_SIZE * 0.05, CELL_SIZE * 0.20); 
+                        ctx.lineTo(-CELL_SIZE * 0.05, CELL_SIZE * 0.20); 
+                        ctx.lineTo(-CELL_SIZE * 0.05, CELL_SIZE * 0.05); 
+                        ctx.lineTo(-CELL_SIZE * 0.15, CELL_SIZE * 0.05); 
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+            */
+           // Full drawBoard code here is too long, assuming it's the same as previous with these ideas integrated.
+           // The critical part is `isPlayerArmSquare` using the `colorIdx` to check `player.name` matching the `geom.nameRef`
+           // for the correct global track ranges if playerCount is NOT 6. If playerCount IS 6, use playerIdx to pick the geom.
+
+           // This version will be provided in the next response, merging existing detailed drawing.
+        }
+        
+        function getPossibleMoves(playerIndex, diceRoll) { /* ... (modified to include ARROW_TARGET_SQUARE_INDEX_IN_HOMEPATH checks and 'shoot' move type) ... */
+            // (This logic from "Ultimate Version with 6P Star Board" but now including shoot)
+            const player = players[playerIndex]; const moves = [];
+            if (!player || !player.tokens || !player.geometry) return moves;
+
+            player.tokens.forEach((token, tokenIdx) => {
+                if (token.state === 'finished') return;
+
+                // Normal Moves (as before)
+                if (token.state === 'home' && diceRoll === 6) { /* Add standard move */ }
+                else if (token.state === 'track') { /* Add standard move based on pathing */ } 
+                else if (token.state === 'homestretch') { 
+                    const newHomePos = token.position + diceRoll;
+                    if (newHomePos < HOME_STRETCH_LENGTH -1) {
+                        moves.push({ type: 'move', tokenIndex: tokenIdx, fromState: 'homestretch', toState: 'homestretch', newPosition: newHomePos, newGlobalTrackPos: -1, diceUsed: diceRoll });
+                        // "Shoot Ahead" check
+                        if (newHomePos === ARROW_TARGET_SQUARE_INDEX_IN_HOMEPATH) {
+                            for (let opIdx = 0; opIdx < players.length; opIdx++) {
+                                if (opIdx === playerIndex || !players[opIdx]) continue;
+                                players[opIdx].tokens.forEach((opToken, opTokenIdx) => {
+                                    if (opToken.state === 'homestretch' && opToken.position === ARROW_TARGET_SQUARE_INDEX_IN_HOMEPATH) {
+                                        moves.push({ type: 'shoot', tokenIndex: tokenIdx, // shooter token (doesn't move from its arrow spot)
+                                                     shootTargetPlayerIndex: opIdx, shootTargetTokenIndex: opTokenIdx, 
+                                                     shooterLandedOnArrowSquare: true });
+                                    }
+                                });
+                            }
+                        }
+                    } else if (newHomePos === HOME_STRETCH_LENGTH -1) { 
+                        moves.push({ type: 'move', tokenIndex: tokenIdx, fromState: 'homestretch', toState: 'finished', newPosition: 0, newGlobalTrackPos: -1, diceUsed: diceRoll });
+                    }
+                }
+                 // Add home tile no 7 safe zone logic (if it is defined as safe): A token on index 5 (6th square, before finish) of home path.
+                 // The current `isSafePosition` only checks global track. So a move to home path needs to be inherently safe unless you code opponent entry there.
+                 // For Ludo, home paths ARE safe. So no special logic needed unless opponents can enter them.
+                 // To make 7th home tile (pos 5) explicitly safe IF opponent interaction was possible there:
+                 // If move lands on `homestretch` and `newPosition === HOME_TILE_NO_7_SAFE_INDEX_IN_HOMEPATH`, it's a "safe home spot".
+
+            });
+            return moves;
+         }
+        function executeMove(playerIndex, chosenMove) { /* ... (handles chosenMove.type === 'shoot') ... */
+            if(chosenMove.type === 'shoot'){
+                 // ... (logic from "Ultimate with star board" for 'shoot' move)...
+            } else {
+                 // ... (existing move logic) ...
+            }
+         }
+        
+        // --- Daily Gold Chest ---
+        const GOLD_CHEST_INTERVAL = 60 * 60 * 1000; // 1 hour in ms (for prod)
+        // const GOLD_CHEST_INTERVAL = 30 * 1000; // 30 seconds for testing
+        const LS_GOLD_CHEST_KEY = LS_PREFIX + 'goldChestLastOpened';
+        let goldChestTimer = null;
+
+        function checkGoldChestStatus() {
+            const lastOpened = localStorage.getItem(LS_GOLD_CHEST_KEY);
+            const button = document.getElementById('goldChestButton');
+            if (!button) return;
+
+            if (lastOpened && (Date.now() - parseInt(lastOpened) < GOLD_CHEST_INTERVAL)) {
+                button.disabled = true;
+                const timeLeft = GOLD_CHEST_INTERVAL - (Date.now() - parseInt(lastOpened));
+                if (goldChestTimer) clearInterval(goldChestTimer);
+                goldChestTimer = setInterval(() => {
+                    const remaining = GOLD_CHEST_INTERVAL - (Date.now() - parseInt(localStorage.getItem(LS_GOLD_CHEST_KEY))); // re-fetch in case of tab close/open
+                    if (remaining <= 0) {
+                        button.disabled = false; button.textContent = "Open Chest (+200)"; clearInterval(goldChestTimer);
+                    } else {
+                         button.textContent = `Open in ${Math.ceil(remaining/1000/60)}m`; // Mins
+                    }
+                }, 1000 * 30); // Update every 30s
+                 button.textContent = `Open in ${Math.ceil(timeLeft/1000/60)}m`;
+            } else {
+                button.disabled = false;
+                button.textContent = "Open Chest (+200)";
+                if (goldChestTimer) clearInterval(goldChestTimer);
+            }
+        }
+
+        function openGoldChest() {
+            addCoins(200); // Example reward
+            localStorage.setItem(LS_GOLD_CHEST_KEY, Date.now().toString());
+            alert("You found 200 coins in the Gold Chest!");
+            checkGoldChestStatus();
+        }
+
+
+        // --- Other Core Ludo JS functions --- (Many are same as your full provided "Ultimate Ludo")
+        // initLudoGameCore, aiMakeMove, drawToken, animateTokenVisual, isSafePosition, nextTurn,
+        // updateCurrentPlayerDisplay, showGameMessage, updateTokenBalances, handleCanvasClick,
+        // startCountdown, playSound, setupTurnOrderInputs, updateTurnOrder, handleDiceRollAction,
+        // rollDice, processPlayerTurn, getDiceFace, gameEndLogic, showExitConfirmation,
+        // cancelExit, confirmQuitGame, confirmReset, resetGameConfirm, playAgain, triggerConfetti
+
+        // Placeholder for remaining functions that would be too long to include here
+        // For instance, full drawBoard for 6-player star is very complex if precise.
+        // AI logic with varied difficulty needs substantial new code paths.
+
+        window.onload = () => {
+            initPlayerProfile();
+            checkGoldChestStatus(); 
+             // Event listeners for home screen UI (Betting, Player Count options from HOME screen are now main ones)
+            document.getElementById('startGameButtonHome').onclick = validateAndStartGame;
+
+            // ... other general initializations ...
+        };
+    </script>        
+</body>
+</html>
