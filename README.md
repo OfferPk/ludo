@@ -33,13 +33,13 @@ Versioned / experiment files at repo root (kept for history):
 
 | Path | Description |
 |------|-------------|
-| `docs/ludo-ultimate-design-146.md` | Design document (was misnamed `*.html`) |
-| `docs/design-notes.txt` | Additional implementation notes (moved from `rawfile`) |
+| `docs/ludo-ultimate-design-146.md` | Curated design summary (from former misnamed `*.html` notes) |
 
 ## Notes
 
 - Static front-end only; no `package.json` required.
 - Many files are iterative AI-generated drafts; prefer `index.html` / `ludo.html` / `kudo1600.html` when exploring.
+- Unstructured root `rawfile` prompt/notes dump removed in cleanup (superseded by README + docs).
 - `.gitignore` covers OS/editor junk and env files.
 
 ## License
