@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -354,6 +353,355 @@
       #board {
         width: 95vw;
         height: 95vw;
+      }
+    }
+
+    /* Main-screen polish: keep the existing game DOM and logic intact. */
+    :root {
+      --ink: #18372b;
+      --muted-ink: #5c7065;
+      --green: #208657;
+      --green-deep: #176a45;
+      --surface: #ffffff;
+      --surface-soft: #f2f8f4;
+      --line: #dce9e1;
+      --soft-shadow: 0 14px 38px rgba(27, 62, 44, 0.12);
+    }
+
+    body {
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(202, 239, 218, 0.8), transparent 32rem),
+        radial-gradient(circle at 94% 4%, rgba(220, 237, 250, 0.75), transparent 28rem),
+        linear-gradient(180deg, #f1f7f3 0%, #f8faf8 58%, #eef4f0 100%);
+      padding: clamp(14px, 2.4vw, 30px);
+      gap: 12px;
+    }
+
+    h1 {
+      width: 100%;
+      color: var(--ink);
+      margin: 2px 0 4px;
+      font-size: clamp(1.75rem, 3vw, 2.55rem);
+      line-height: 1.1;
+      letter-spacing: -0.045em;
+      text-align: center;
+    }
+
+    #controls {
+      width: min(100%, 980px);
+      max-width: 980px;
+      margin: 0 auto;
+      gap: 10px;
+    }
+
+    #controls .btn {
+      min-height: 46px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      box-shadow: 0 5px 13px rgba(30, 61, 44, 0.13);
+    }
+
+    .mode-btn {
+      background: linear-gradient(135deg, #279462 0%, #176b46 100%);
+    }
+
+    .mode-btn:hover {
+      background: linear-gradient(135deg, #23875a 0%, #145e3d 100%);
+    }
+
+    .feature-btn {
+      background: linear-gradient(135deg, #4b88c8 0%, #3169a8 100%);
+    }
+
+    .danger-btn {
+      background: linear-gradient(135deg, #e36058 0%, #c83f3a 100%);
+    }
+
+    .btn:focus-visible,
+    #dice:focus-visible,
+    .toggle-switch input:focus-visible + .slider {
+      outline: 3px solid #1c7f54;
+      outline-offset: 3px;
+    }
+
+    #dice-container {
+      box-sizing: border-box;
+      width: min(100%, 860px);
+      max-width: 860px;
+      margin: 0 auto 4px;
+      padding: clamp(16px, 2.5vw, 26px);
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 14px 18px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    #dice {
+      width: 72px;
+      height: 72px;
+      margin: 0;
+      border: 4px solid #fff;
+      border-radius: 19px;
+      background: linear-gradient(145deg, #f1b74d 0%, #e18b32 100%);
+      box-shadow: 0 8px 18px rgba(162, 98, 26, 0.25);
+    }
+
+    .token-info {
+      width: 100%;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    #turn-indicator {
+      margin: 0;
+      padding: 10px 15px;
+      border: 1px solid #cfe8d8;
+      border-radius: 999px;
+      background: #edf8f1;
+      color: var(--green-deep);
+      font-size: 16px;
+    }
+
+    #player-balances {
+      color: var(--muted-ink);
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .player-balance {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border: 1px solid #e0eae3;
+      border-radius: 999px;
+      background: #f4f8f5;
+      color: #304a3b;
+      font-size: 14px;
+    }
+
+    #dice-container > button {
+      min-height: 46px;
+      padding: 11px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+    }
+
+    #rollButton {
+      background: linear-gradient(135deg, #279462 0%, #176b46 100%);
+      box-shadow: 0 6px 14px rgba(23, 107, 70, 0.2);
+    }
+
+    #rollButton:hover {
+      background: linear-gradient(135deg, #23875a 0%, #145e3d 100%);
+    }
+
+    .buy-six-btn {
+      border-color: #8bc6a2;
+      border-radius: 13px;
+      background: #e8f6ed;
+      color: #176a45;
+      font-weight: 700;
+    }
+
+    .auto-mode-toggle {
+      margin-top: 0;
+      padding: 8px 12px;
+      border: 1px solid #e1ebe4;
+      border-radius: 999px;
+      background: #f6f9f7;
+      color: #3c5547;
+    }
+
+    .auto-mode-status {
+      margin-top: 0;
+      color: var(--green-deep);
+    }
+
+    input:checked + .slider::before {
+      transform: translateX(26px);
+    }
+
+    .countdown-container {
+      width: min(200px, 100%);
+      margin-top: 0;
+    }
+
+    .countdown-text {
+      top: -20px;
+      color: var(--muted-ink);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .countdown-bar {
+      height: 9px;
+      border-radius: 999px;
+      background: #e6eee8;
+    }
+
+    .countdown-progress {
+      border-radius: 999px;
+      background: linear-gradient(90deg, #36a96f 0%, #8acb6a 100%);
+    }
+
+    #board {
+      width: 800px;
+      height: 800px;
+      margin: 0 auto 4px;
+      border: 8px solid #fff;
+      border-radius: 24px;
+      background: linear-gradient(145deg, #fffefa 0%, #f8f8f2 100%);
+      box-shadow: 0 18px 46px rgba(27, 62, 44, 0.2);
+    }
+
+    #board .tile {
+      border-radius: 8px;
+      border-color: rgba(54, 76, 63, 0.2);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 1px 2px rgba(36, 55, 43, 0.08);
+    }
+
+    #board .safe-zone {
+      border: 2px solid #cfaa3a !important;
+      background: linear-gradient(145deg, #fff6ce, #ffedaa) !important;
+    }
+
+    #board .player-name {
+      padding: 5px 11px;
+      border: 2px solid rgba(255, 255, 255, 0.88);
+      box-shadow: 0 4px 10px rgba(30, 48, 36, 0.2);
+    }
+
+    #board .player-token {
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 6px rgba(26, 40, 31, 0.28);
+    }
+
+    .valid-move {
+      outline: 3px solid #178a57;
+      outline-offset: 2px;
+    }
+
+    .rules-section {
+      box-sizing: border-box;
+      width: min(100%, 860px);
+      max-width: 860px;
+      margin: 6px auto 20px;
+      padding: clamp(18px, 2.6vw, 28px);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--soft-shadow);
+    }
+
+    .rule-category h3,
+    .game-stats h4 {
+      color: var(--green-deep);
+    }
+
+    .rule-category ul {
+      color: #42594b;
+      line-height: 1.8;
+    }
+
+    .rule-category li::marker {
+      color: var(--green);
+    }
+
+    .game-stats {
+      box-sizing: border-box;
+      width: 100%;
+      margin-top: 20px;
+      padding: 18px;
+      border: 1px solid #dcece1;
+      border-radius: 16px;
+      background: var(--surface-soft);
+    }
+
+    .game-stats h4 {
+      margin-top: 0;
+    }
+
+    .tile-count {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 8px;
+    }
+
+    .tile-count span {
+      padding: 10px 12px;
+      border: 1px solid #e0eae3;
+      border-radius: 11px;
+      background: #fff;
+      color: #42594b;
+      font-weight: 600;
+    }
+
+    @media (max-width: 840px) {
+      #board {
+        width: 800px;
+        height: 800px;
+        zoom: 0.9;
+      }
+    }
+
+    @media (max-width: 720px) {
+      #board { zoom: 0.78; }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 14px; }
+      #controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+      #controls .btn {
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 14px;
+      }
+      #dice-container { padding: 15px; }
+      .token-info {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .player-balance {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
+      #board { zoom: 0.66; }
+      .rules-section { padding: 18px; }
+    }
+
+    @media (max-width: 520px) {
+      #board { zoom: 0.56; }
+    }
+
+    @media (max-width: 420px) {
+      #board { zoom: 0.46; }
+    }
+
+    @media (max-width: 360px) {
+      #board { zoom: 0.39; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
   </style>
@@ -1158,4 +1506,3 @@
   </script>
 </body>
 </html>
-```
